@@ -1,5 +1,6 @@
 import React from "react";
 import "./LandingPage.css";
+import { Button } from "@/components/ui/button"
 
 import {
   Brain,
@@ -11,8 +12,9 @@ import {
   Calendar,
   Heart,
 } from "lucide-react";
-
 const LandingPage = () => {
+  const [isLoginOpen, setIsLoginOpen] = React.useState(false);
+  const [isSignUpOpen, setIsSignUpOpen] = React.useState(false);
   const recentMemories = [
     {
       id: 1,
@@ -51,9 +53,64 @@ const LandingPage = () => {
       <div className="lp container">
         {/* Header */}
         <div className="lp header">
-          <h1 className="lp title">Welcome back, Alex</h1>
-          <p className="lp muted">Continue your journey of self-discovery and growth</p>
+          <div>
+            <h1 className="lp title">Welcome back, Alex</h1>
+            <p className="lp muted">
+              Continue your journey of self-discovery and growth
+            </p>
+          </div>
+          <div className="Login">
+            <Button onClick={() => setIsLoginOpen(true)}>Login</Button>
+          </div>
         </div>
+
+        {/*  Login Modal */}
+        {isLoginOpen && (
+          <div className="lp modal-overlay">
+            <div className="lp modal">
+              <h2 className="lp h2">Login</h2>
+              <form className="lp stack">
+                <input type="email" placeholder="Email" className="lp input" />
+                <input type="password" placeholder="Password" className="lp input" />
+                <Button>Submit</Button>
+              </form>
+              <Button
+                variant="ghost"
+                onClick={() => setIsLoginOpen(false)}
+              >
+                Close
+              </Button>
+              <p>Didn't register yet? <Button
+                variant="ghost"
+                onClick={() => {setIsSignUpOpen(true);
+                setIsLoginOpen(false)
+                }}
+              >
+                Sign Up
+              </Button> now </p>
+            </div>
+          </div>
+        )}
+
+        {/* 👇 SignUp Modal */}
+        {isSignUpOpen && (
+          <div className="lp modal-overlay">
+            <div className="lp modal">
+              <h2 className="lp h2">SignUp</h2>
+              <form className="lp stack">
+                <input type="email" placeholder="Email" className="lp input" />
+                <input type="password" placeholder="Password" className="lp input" />
+                <Button>Submit</Button>
+              </form>
+              <Button
+                variant="ghost"
+                onClick={() => setIsSignUpOpen(false)}
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="lp quick-actions">
