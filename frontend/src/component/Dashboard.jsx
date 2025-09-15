@@ -1,6 +1,6 @@
 import React from "react";
 import "./Dashboard.css";
-import { Button } from "@/components/ui/button"
+import { Button } from "@/component/ui/button"
 
 import {
   Brain,
