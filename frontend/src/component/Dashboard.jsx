@@ -1,5 +1,5 @@
 import React from "react";
-import "./LandingPage.css";
+import "./Dashboard.css";
 import { Button } from "@/components/ui/button"
 
 import {
@@ -12,7 +12,7 @@ import {
   Calendar,
   Heart,
 } from "lucide-react";
-const LandingPage = () => {
+const Dashboard = () => {
   const [isLoginOpen, setIsLoginOpen] = React.useState(false);
   const [isSignUpOpen, setIsSignUpOpen] = React.useState(false);
   const recentMemories = [
@@ -270,4 +270,4 @@ const LandingPage = () => {
   );
 };
 
-export default LandingPage;
+export default Dashboard;
