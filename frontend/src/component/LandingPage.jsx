@@ -104,7 +104,7 @@ const LandingPage = () => {
                 <h2 className="lp h2">SignUp</h2>
               <Button
                 variant="ghost"
-                onClick={() => setIsLoginOpen(false)}
+                onClick={() => setIsSignUpOpen(false)}
               >
                 X
               </Button>
