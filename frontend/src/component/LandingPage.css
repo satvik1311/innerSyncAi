@@ -179,6 +179,7 @@ svg { user-select: none; }
   height: 100vh;
   background: rgba(0, 0, 0, 0.5); /* dark background */
   display: flex;
+  
   align-items: center; /* vertical center */
   justify-content: center; /* horizontal center */
   z-index: 999; /* stays on top */
@@ -192,6 +193,7 @@ svg { user-select: none; }
   max-width: 90%;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   animation: popIn 0.3s ease;
+  
 }
 
 .lp.stack {
@@ -217,4 +219,10 @@ svg { user-select: none; }
     transform: scale(1);
     opacity: 1;
   }
+}
+.signinheader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
 }

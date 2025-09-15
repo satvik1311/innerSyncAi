@@ -68,26 +68,30 @@ const LandingPage = () => {
         {isLoginOpen && (
           <div className="lp modal-overlay">
             <div className="lp modal">
-              <h2 className="lp h2">Login</h2>
+              <div className="signinheader">
+                <h2 className="lp h2">Login</h2>
+              <Button
+                variant="ghost"
+                onClick={() => setIsLoginOpen(false)}
+              >
+                X
+              </Button>
+              </div>
+              
               <form className="lp stack">
                 <input type="email" placeholder="Email" className="lp input" />
                 <input type="password" placeholder="Password" className="lp input" />
                 <Button>Submit</Button>
               </form>
-              <Button
-                variant="ghost"
-                onClick={() => setIsLoginOpen(false)}
-              >
-                Close
-              </Button>
+              
               <p>Didn't register yet? <Button
-                variant="ghost"
+                variant="ghost" style={{padding:0}}
                 onClick={() => {setIsSignUpOpen(true);
                 setIsLoginOpen(false)
                 }}
               >
                 Sign Up
-              </Button> now </p>
+              </Button>  </p>
             </div>
           </div>
         )}
@@ -96,18 +100,28 @@ const LandingPage = () => {
         {isSignUpOpen && (
           <div className="lp modal-overlay">
             <div className="lp modal">
-              <h2 className="lp h2">SignUp</h2>
+              <div className="signinheader">
+                <h2 className="lp h2">SignUp</h2>
+              <Button
+                variant="ghost"
+                onClick={() => setIsLoginOpen(false)}
+              >
+                X
+              </Button>
+              </div>
               <form className="lp stack">
                 <input type="email" placeholder="Email" className="lp input" />
                 <input type="password" placeholder="Password" className="lp input" />
+                <input type="password" placeholder="renter password" className="lp input"/>
                 <Button>Submit</Button>
               </form>
-              <Button
-                variant="ghost"
-                onClick={() => setIsSignUpOpen(false)}
-              >
-                Close
-              </Button>
+              <p>Already have an account? <Button
+                variant="ghost" style={{padding:0}}
+                onClick={() => {setIsLoginOpen(true);
+                setIsSignUpOpen(false)
+                }}>
+                Login
+              </Button>  </p>
             </div>
           </div>
         )}
