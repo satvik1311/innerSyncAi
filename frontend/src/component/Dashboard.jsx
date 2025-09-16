@@ -54,7 +54,7 @@ const Dashboard = () => {
         {/* Header */}
         <div className="lp header">
           <div>
-            <h1 className="lp title">Welcome back, Alex</h1>
+            <h1 className="lp title">Welcome back, Satvik</h1>
             <p className="lp muted">
               Continue your journey of self-discovery and growth
             </p>

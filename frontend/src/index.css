@@ -1,13 +1,18 @@
+/* ---- Tailwind v4 core ---- */
 @import "tailwindcss";
+/* If you didn't install this, remove the next line or run: npm i -D tw-animate-css */
 @import "tw-animate-css";
 
+/* class-based dark variant (matches <html class="dark">) */
 @custom-variant dark (&:is(.dark *));
 
+/* Map your CSS variables to Tailwind color aliases */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -41,6 +46,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* LIGHT tokens (oklch) */
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -76,6 +82,7 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* DARK tokens */
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -84,7 +91,8 @@
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  /* Make text on purple buttons WHITE in dark mode */
+  --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -110,11 +118,31 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Base app styles */
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+  * { @apply border-border outline-ring/50; }
+  body { @apply bg-background text-foreground; }
+}
+
+/* Custom utilities to match the purple cosmic look */
+@layer utilities {
+  /* Purple → pink gradient used by the logo tile and Get Started button */
+  .bg-gradient-cosmic {
+    background-image: linear-gradient(90deg, hsl(262 83% 58%), hsl(292 84% 61%));
   }
-  body {
-    @apply bg-background text-foreground;
+
+  .text-gradient-cosmic {
+    background-image: linear-gradient(90deg, hsl(262 83% 58%), hsl(292 84% 61%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
+
+  .shadow-glow-primary {
+    box-shadow:
+      0 0 0 1px hsl(var(--border) / 0.2) inset,
+      0 10px 30px hsl(262 83% 58% / 0.35);
+  }
+
+  .text-vault-glow { color: hsl(262 83% 68%); }
 }
