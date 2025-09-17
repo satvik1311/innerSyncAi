@@ -1,0 +1,55 @@
+.lp.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5); /* dark background */
+  display: flex;
+  
+  align-items: center; /* vertical center */
+  justify-content: center; /* horizontal center */
+  z-index: 999; /* stays on top */
+}
+
+.lp.modal {
+  background: black;
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: popIn 0.3s ease;
+  
+}
+
+.lp.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lp.input {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  outline: none;
+  font-size: 1rem;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.signinheader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
