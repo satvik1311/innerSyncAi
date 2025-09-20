@@ -1,6 +1,5 @@
 import React from "react";
 import "./Dashboard.css";
-import { Button } from "@/component/ui/button"
 
 import {
   Brain,
@@ -12,9 +11,8 @@ import {
   Calendar,
   Heart,
 } from "lucide-react";
+
 const Dashboard = () => {
-  // const [isLoginOpen, setIsLoginOpen] = React.useState(false);
-  // const [isSignUpOpen, setIsSignUpOpen] = React.useState(false);
   const recentMemories = [
     {
       id: 1,
@@ -64,66 +62,77 @@ const Dashboard = () => {
           </div> */}
         </div>
 
-        {/* Quick Actions */}
-        <div className="lp quick-actions">
-          <button className="lp btn lp btn-cosmic">
+        {/* Quick Actions (Tailwind-only, matching Landing UI) */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <button className="flex flex-col items-center justify-center gap-2 h-24 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-500 to-fuchsia-500 shadow-lg hover:brightness-110 transition">
             <Plus size={22} />
             <span>New Memory</span>
           </button>
-          <button className="lp btn lp btn-outline">
+          <button className="flex flex-col items-center justify-center gap-2 h-24 rounded-xl font-semibold text-neutral-300 bg-white/10 backdrop-blur border border-white/10 hover:bg-white/20 transition">
             <MessageCircle size={22} />
             <span>Chat Future Self</span>
           </button>
-          <button className="lp btn lp btn-outline">
+          <button className="flex flex-col items-center justify-center gap-2 h-24 rounded-xl font-semibold text-neutral-300 bg-white/10 backdrop-blur border border-white/10 hover:bg-white/20 transition">
             <Target size={22} />
             <span>Add Goal</span>
           </button>
-          <button className="lp btn lp btn-outline">
+          <button className="flex flex-col items-center justify-center gap-2 h-24 rounded-xl font-semibold text-neutral-300 bg-white/10 backdrop-blur border border-white/10 hover:bg-white/20 transition">
             <Clock size={22} />
             <span>Time Capsule</span>
           </button>
         </div>
 
         <div className="lp grid">
-          {/* Recent Memories */}
-          <div className="lp col-main">
-            <div className="lp card">
-              <div className="lp card-head between">
-                <div className="lp row gap">
-                  <Brain size={22} className="lp icon-vault" />
-                  <h2 className="lp h2">Recent Memories</h2>
-                </div>
-                <button className="lp btn lp btn-ghost lp btn-sm">View All</button>
-              </div>
+         {/* Recent Memories */}
+<div className="lp col-main">
+  <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2">
+        <Brain size={22} className="text-emerald-400" />
+        <h2 className="text-lg font-bold">Recent Memories</h2>
+      </div>
+      <button className="h-auto px-3 py-1.5 rounded-lg text-sm text-neutral-300 hover:bg-white/10 transition">
+        View All
+      </button>
+    </div>
 
-              <div className="lp stack">
-                {recentMemories.map((m) => (
-                  <div key={m.id} className="lp card lp memory">
-                    <div className="lp memory-head">
-                      <h3 className="lp h3">{m.title}</h3>
-                      <span className="lp badge">
-                        <Heart size={14} className="lp badge-icon" />
-                        {m.mood}
-                      </span>
-                    </div>
-
-                    <p className="lp text line-clamp-2">{m.content}</p>
-
-                    <div className="lp memory-foot">
-                      <div className="lp tags">
-                        {m.tags.map((t) => (
-                          <span key={t} className="lp badge lp badge-outline">
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                      <span className="lp date">{m.date}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+    <div className="grid gap-4">
+      {recentMemories.map((m) => (
+        <div
+          key={m.id}
+          className="rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition p-4"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-base font-semibold">{m.title}</h3>
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full border border-white/10 bg-white/10 px-2 py-1">
+              <Heart size={14} className="opacity-80" />
+              {m.mood}
+            </span>
           </div>
+
+          <p className="text-neutral-300 text-sm line-clamp-2">
+            {m.content}
+          </p>
+
+          <div className="mt-3 flex items-center justify-between">
+            <div className="flex gap-2 flex-wrap">
+              {m.tags.map((t) => (
+                <span
+                  key={t}
+                  className="inline-flex items-center text-xs rounded-full border border-white/10 px-2 py-0.5 text-neutral-300"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+            <span className="text-xs text-neutral-400">{m.date}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
 
           {/* Sidebar */}
           <div className="lp col-side">
