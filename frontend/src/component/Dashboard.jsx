@@ -1,6 +1,5 @@
 import React from "react";
 import "./Dashboard.css";
-
 import {
   Brain,
   MessageCircle,
@@ -10,9 +9,14 @@ import {
   TrendingUp,
   Calendar,
   Heart,
+  ArrowLeft,
 } from "lucide-react";
 
-const Dashboard = () => {
+/**
+ * When rendered from LandingPage as a preview, pass:
+ *   <Dashboard onBack={() => setShowDashboard(false)} preview />
+ */
+const Dashboard = ({ onBack, preview = false }) => {
   const recentMemories = [
     {
       id: 1,
@@ -49,6 +53,25 @@ const Dashboard = () => {
   return (
     <div className="lp page">
       <div className="lp container">
+        {/* Back to Landing (only shows when onBack is provided) */}
+        {onBack && (
+          <div className="mb-4">
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-neutral-200 hover:bg-white/10 transition"
+              aria-label="Back to landing"
+            >
+              <ArrowLeft size={18} />
+              Back to Landing
+            </button>
+            {preview && (
+              <span className="ml-3 text-xs px-2 py-1 rounded-lg border border-fuchsia-500/40 text-fuchsia-300 bg-fuchsia-500/10">
+                Preview
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Header */}
         <div className="lp header">
           <div>
@@ -57,9 +80,6 @@ const Dashboard = () => {
               Continue your journey of self-discovery and growth
             </p>
           </div>
-          {/* <div className="Login">
-            <Button onClick={() => setIsLoginOpen(true)}>Login</Button>
-          </div> */}
         </div>
 
         {/* Quick Actions (Tailwind-only, matching Landing UI) */}
@@ -83,56 +103,55 @@ const Dashboard = () => {
         </div>
 
         <div className="lp grid">
-         {/* Recent Memories */}
-<div className="lp col-main">
-  <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2">
-        <Brain size={22} className="text-emerald-400" />
-        <h2 className="text-lg font-bold">Recent Memories</h2>
-      </div>
-      <button className="h-auto px-3 py-1.5 rounded-lg text-sm text-neutral-300 hover:bg-white/10 transition">
-        View All
-      </button>
-    </div>
+          {/* Recent Memories */}
+          <div className="lp col-main">
+            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Brain size={22} className="text-emerald-400" />
+                  <h2 className="text-lg font-bold">Recent Memories</h2>
+                </div>
+                <button className="h-auto px-3 py-1.5 rounded-lg text-sm text-neutral-300 hover:bg-white/10 transition">
+                  View All
+                </button>
+              </div>
 
-    <div className="grid gap-4">
-      {recentMemories.map((m) => (
-        <div
-          key={m.id}
-          className="rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition p-4"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-base font-semibold">{m.title}</h3>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full border border-white/10 bg-white/10 px-2 py-1">
-              <Heart size={14} className="opacity-80" />
-              {m.mood}
-            </span>
-          </div>
+              <div className="grid gap-4">
+                {recentMemories.map((m) => (
+                  <div
+                    key={m.id}
+                    className="rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition p-4"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-base font-semibold">{m.title}</h3>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full border border-white/10 bg-white/10 px-2 py-1">
+                        <Heart size={14} className="opacity-80" />
+                        {m.mood}
+                      </span>
+                    </div>
 
-          <p className="text-neutral-300 text-sm line-clamp-2">
-            {m.content}
-          </p>
+                    <p className="text-neutral-300 text-sm line-clamp-2">
+                      {m.content}
+                    </p>
 
-          <div className="mt-3 flex items-center justify-between">
-            <div className="flex gap-2 flex-wrap">
-              {m.tags.map((t) => (
-                <span
-                  key={t}
-                  className="inline-flex items-center text-xs rounded-full border border-white/10 px-2 py-0.5 text-neutral-300"
-                >
-                  {t}
-                </span>
-              ))}
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="flex gap-2 flex-wrap">
+                        {m.tags.map((t) => (
+                          <span
+                            key={t}
+                            className="inline-flex items-center text-xs rounded-full border border-white/10 px-2 py-0.5 text-neutral-300"
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                      <span className="text-xs text-neutral-400">{m.date}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <span className="text-xs text-neutral-400">{m.date}</span>
           </div>
-        </div>
-      ))}
-    </div>
-  </div>
-</div>
-
 
           {/* Sidebar */}
           <div className="lp col-side">
@@ -151,7 +170,10 @@ const Dashboard = () => {
                       <span className="lp text-xs lp muted">{g.progress}%</span>
                     </div>
                     <div className="lp progress">
-                      <div className="lp bar" style={{ width: `${g.progress}%` }} />
+                      <div
+                        className="lp bar"
+                        style={{ width: `${g.progress}%` }}
+                      />
                     </div>
                     <div className="lp goal-bottom">
                       <span className="lp badge lp badge-outline">
@@ -173,12 +195,15 @@ const Dashboard = () => {
 
               <div className="lp chat">
                 <p className="lp italic text">
-                  "Remember that every small step you take today builds the foundation for who you'll
-                  become. Trust the process and stay curious."
+                  "Remember that every small step you take today builds the
+                  foundation for who you'll become. Trust the process and stay
+                  curious."
                 </p>
                 <div className="lp chat-foot">
                   <span className="lp glow">Future You (Age 35)</span>
-                  <button className="lp btn lp btn-ghost lp btn-sm">Continue Chat</button>
+                  <button className="lp btn lp btn-ghost lp btn-sm">
+                    Continue Chat
+                  </button>
                 </div>
               </div>
             </div>

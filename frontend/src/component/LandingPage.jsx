@@ -8,7 +8,8 @@ export default function LandingPage() {
   const [showDashboard, setShowDashboard] = useState(false);
 
   if (showDashboard) {
-    return <Dashboard />;
+    // Pass onBack so Dashboard can return to Landing
+    return <Dashboard onBack={() => setShowDashboard(false)} preview />;
   }
 
   return (
@@ -24,11 +25,12 @@ export default function LandingPage() {
             Ready to Begin Your Journey?
           </h3>
           <p className="text-xl text-neutral-400 mb-8 max-w-2xl mx-auto">
-            See how your AI Memory Vault dashboard will look and start connecting with your future self today.
+            See how your AI Memory Vault dashboard will look and start connecting
+            with your future self today.
           </p>
           <button
             onClick={() => setShowDashboard(true)}
-            className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-fuchsia-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:brightness-110 animate-pulse"
+            className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-fuchsia-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:brightness-110"
           >
             Preview Your Vault
           </button>
