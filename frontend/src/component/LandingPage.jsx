@@ -3,6 +3,7 @@ import Navigation from "./Navigation";
 import Hero from "./Hero";
 import Features from "./Features";
 import Dashboard from "./Dashboard";
+import { HowItWorks } from "./HowItWorks";
 
 export default function LandingPage() {
   const [showDashboard, setShowDashboard] = useState(false);
@@ -17,6 +18,8 @@ export default function LandingPage() {
       <Navigation />
       <Hero />
       <Features />
+      <HowItWorks />
+      
 
       {/* Demo Dashboard Button */}
       <section className="py-20 text-center bg-gradient-to-b from-purple-900/20 to-neutral-950">
