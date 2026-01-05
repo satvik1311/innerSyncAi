@@ -5,42 +5,42 @@ import { ArrowRight, Brain, MessageCircle, Target, Clock, Sparkles, TrendingUp }
 export function HowItWorks() {
   const steps = [
     {
-      step: "01",
+      // step: "01",
       icon: Brain,
       title: "Record Your Journey",
       description: "Capture your thoughts, emotions, and experiences through text or voice entries.",
       features: ["Text & voice journaling", "Emotion tagging", "Smart categorization"]
     },
     {
-      step: "02", 
+      // step: "02", 
       icon: Sparkles,
       title: "AI Learns Your Patterns",
       description: "AI analyzes your entries to understand growth patterns and emotional responses.",
       features: ["Pattern recognition", "Emotional insights", "Personal reflections"]
     },
     {
-      step: "03",
+      // step: "03",
       icon: MessageCircle,
       title: "Chat with Future Self",
       description: "Converse with an AI version of your wiser, future self who learns from your memories.",
       features: ["Wisdom-based replies", "Growth advice", "Reflective chats"]
     },
     {
-      step: "04",
+      // step: "04",
       icon: Target,
       title: "Track Your Growth",
       description: "Visualize your development with goals, mood tracking, and interactive timelines.",
       features: ["Goal tracking", "Mood analytics", "Timeline visualization"]
     },
     {
-      step: "05",
+      // step: "05",
       icon: Clock,
       title: "Create Time Capsules",
       description: "Write messages to your future self and unlock them at just the right moment.",
       features: ["Future notes", "Scheduled unlocks", "Milestone reminders"]
     },
     {
-      step: "06",
+      // step: "06",
       icon: TrendingUp,
       title: "Evolve Continuously",
       description: "Watch your AI companion grow more insightful with every memory you add.",
