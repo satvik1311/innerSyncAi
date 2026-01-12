@@ -2,7 +2,7 @@ import { useState } from "react";
 import Navigation from "./Navigation";
 import Hero from "./Hero";
 import Features from "./Features";
-import Dashboard from "./Dashboard";
+import Dashboard from "./ui/Dashboard/Dashboard";
 import { HowItWorks } from "./HowItWorks";
 
 export default function LandingPage() {
