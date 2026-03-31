@@ -1,41 +1,40 @@
-import React from 'react'
-import Dashboard from './component/ui/Dashboard/Dashboard.jsx'
-import UserDashboard from './component/ui/Dashboard/UserDashboard.jsx'
-import Navigation from './component/Navigation.jsx'
-import LandingPage from './component/LandingPage.jsx'
-import Features from './component/Features.jsx'
-import Hero from './component/Hero.jsx'  
-import { createBrowserRouter, Router, RouterProvider } from "react-router";     
+import React from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
 
-const router = createBrowserRouter(
-  [
-    {
-      path: "/",
-      element: <LandingPage />
-    },
-    {
-      path: "/dashboard",
-      element: <UserDashboard />
-    },
-    {
-       path: "/dashboard/new",
-      element: <div className="p-10 text-white">New Memory Page</div>
-    }
-  ]);
+import Navigation from "./component/Navigation";
+import LandingPage from "./component/LandingPage";
+import UserDashboard from "./component/ui/Dashboard/UserDashboard";
+import NewMemory from "./component/ui/Dashboard/NewMemory";
+import GoalsPage from "./component/ui/Dashboard/GoalsPage";
+import Login from "./component/auth/Login";
+import Signup from "./component/auth/Signup";
 
 const App = () => {
-  return (
-    <div>
-      <RouterProvider router={router} />
-      {/* <LandingPage /> */}
-      {/* <Navigation />
-      <Features />  */}
-      {/* <Hero /> */}
-      {/* <Dashboard /> */}
-       {/* <Navigation /> */}
-      {/* <Dashboard /> */}
-    </div>
-  )
-}
+  const location = useLocation();
 
-export default App
+  // ❌ Navbar hide on these pages
+  const hideNavbarRoutes = ["/login", "/signup", "/dashboard", "/dashboard/new", "/dashboard/goals"];
+
+  // Exact match handling, or just check if it starts with dashboard
+  const shouldShowNavbar = !hideNavbarRoutes.some(path => location.pathname === path || location.pathname.startsWith("/dashboard"));
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-black to-[#020617]">
+
+      {/* ✅ CONDITIONAL NAVBAR */}
+      {shouldShowNavbar && <Navigation />}
+
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/dashboard" element={<UserDashboard />} />
+        <Route path="/dashboard/new" element={<NewMemory />} />
+        <Route path="/dashboard/goals" element={<GoalsPage />} />
+      </Routes>
+
+    </div>
+  );
+};
+
+export default App;

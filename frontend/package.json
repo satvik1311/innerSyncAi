@@ -12,6 +12,7 @@
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/vite": "^4.1.13",
+    "axios": "^1.13.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.24.10",
@@ -20,6 +21,7 @@
     "react-dom": "^19.1.1",
     "react-router": "^7.12.0",
     "react-router-dom": "^7.9.1",
+    "recharts": "^3.8.1",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {

@@ -1,0 +1,159 @@
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Send, Loader2, Sparkles, User, BrainCircuit } from "lucide-react";
+import API from "../../../lib/api";
+
+export const ChatInterface = () => {
+  const [message, setMessage] = useState("");
+  const [chat, setChat] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chat, loading]);
+
+  const sendMessage = async () => {
+    if (!message.trim()) return;
+    const userMsg = message;
+    setMessage("");
+    setChat((prev) => [...prev, { sender: "user", text: userMsg }]);
+    setLoading(true);
+
+    try {
+      const res = await API.post("/chat", { message: userMsg });
+      setChat((prev) => [...prev, { sender: "ai", text: res.data.reply }]);
+    } catch (err) {
+      setChat((prev) => [...prev, { sender: "ai", text: "I'm having trouble connecting to the timeline right now. Please try again later." }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const [isListening, setIsListening] = useState(false);
+
+  // Native Web Speech API
+  const startListening = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Your browser doesn't support speech recognition.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setMessage((prev) => prev + (prev ? " " : "") + transcript);
+    };
+
+    recognition.start();
+  };
+
+  return (
+    <div className="flex flex-col h-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden relative">
+      {/* Header */}
+      <div className="p-4 bg-white/5 border-b border-white/10 flex items-center gap-3">
+        <div className="p-2 rounded-full bg-cyan-500/20 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]">
+          <BrainCircuit size={20} />
+        </div>
+        <div>
+          <h3 className="font-semibold text-white">Future Self</h3>
+          <p className="text-xs text-cyan-400 flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" /> Online (+5 Years)
+          </p>
+        </div>
+      </div>
+
+      {/* Chat Area */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {chat.length === 0 && (
+          <div className="h-full flex flex-col items-center justify-center text-zinc-500 text-center space-y-4">
+            <Sparkles size={40} className="text-purple-400/50" />
+            <p className="max-w-[250px] text-sm">Ask me anything. I have the context of your past memories to guide you.</p>
+          </div>
+        )}
+        
+        <AnimatePresence>
+          {chat.map((msg, i) => {
+            const isUser = msg.sender === "user";
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}
+              >
+                <div className={`p-2 rounded-full h-8 w-8 flex items-center justify-center shrink-0 ${isUser ? "bg-purple-500 text-white" : "bg-cyan-500/20 text-cyan-400"}`}>
+                  {isUser ? <User size={16} /> : <BrainCircuit size={16} />}
+                </div>
+                <div
+                  className={`px-4 py-2.5 rounded-2xl max-w-[75%] text-sm shadow-md leading-relaxed ${
+                    isUser
+                      ? "bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-tr-none"
+                      : "bg-white/10 text-zinc-200 border border-white/5 rounded-tl-none backdrop-blur-sm"
+                  }`}
+                  style={{ whiteSpace: "pre-wrap" }}
+                >
+                  {msg.text}
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+
+        {loading && (
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex gap-3">
+            <div className="p-2 rounded-full h-8 w-8 flex items-center justify-center bg-cyan-500/20 text-cyan-400 shrink-0">
+              <BrainCircuit size={16} />
+            </div>
+            <div className="px-5 py-3 rounded-2xl bg-white/10 rounded-tl-none border border-white/5 flex items-center">
+              <div className="flex gap-1">
+                {[...Array(3)].map((_, i) => (
+                  <motion.span
+                    key={i}
+                    className="w-2 h-2 bg-cyan-400 rounded-full"
+                    animate={{ y: [0, -5, 0] }}
+                    transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.2 }}
+                  />
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+        <div ref={chatEndRef} />
+      </div>
+
+      {/* Input Box */}
+      <div className="p-4 bg-white/5 border-t border-white/10">
+        <div className="relative flex items-center glass rounded-xl pr-2 border border-white/10 bg-black/40">
+          <button 
+            onClick={startListening} 
+            className={`p-3 mr-1 transition-colors ${isListening ? "text-red-400 animate-pulse" : "text-zinc-400 hover:text-white"}`}
+            title="Use Voice"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+          </button>
+          <input
+            className="w-full bg-transparent px-2 py-3 text-white placeholder-zinc-500 focus:outline-none"
+            placeholder={isListening ? "Listening..." : "Talk to your future self..."}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          />
+          <button
+            onClick={sendMessage}
+            disabled={!message.trim() || loading}
+            className="p-2 ml-2 bg-cyan-500 hover:bg-cyan-400 text-black rounded-lg transition-all disabled:opacity-50 disabled:hover:bg-cyan-500"
+          >
+            {loading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
