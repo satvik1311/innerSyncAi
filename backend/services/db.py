@@ -8,6 +8,6 @@ load_dotenv()
 client = AsyncIOMotorClient(os.getenv("MONGO_URI"), tlsCAFile=certifi.where())
 db = client["memory_vault"]
 
-memory_collection = db["memories"]
-goals_collection = db["goals"]
+users_collection       = db["users"]
+memories_collection    = db["memories"]
 conversations_collection = db["conversations"]

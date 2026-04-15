@@ -1,52 +1,71 @@
 from fastapi import APIRouter, Header, HTTPException
-from models.memory_model import Memory
-from services.db import memory_collection, goals_collection
+from pydantic import BaseModel
+from services.db import memories_collection
+from services.ai_service import generate_memory_tasks
 from bson import ObjectId
 from services.auth_service import decode_token
+import datetime
+import uuid
 
 router = APIRouter()
 
-# 🔹 CREATE MEMORY
-@router.post("/")
-async def create_memory(memory: Memory, authorization: str = Header(None)):
+
+class CreateMemoryRequest(BaseModel):
+    title: str
+    description: str = ""
+    mode: str = "soft"
+
+
+# POST /memory/create
+@router.post("/create")
+async def create_memory(req: CreateMemoryRequest, authorization: str = Header(None)):
     if not authorization:
         raise HTTPException(status_code=401, detail="Token missing")
 
     token = authorization.split(" ")[1]
     user = decode_token(token)
+    email = user["email"]
 
-    data = memory.dict()
-    data["email"] = user["email"]
+    # Enforce max 3 active memories
+    active_count = await memories_collection.count_documents({"user_email": email, "status": "active"})
+    if active_count >= 3:
+        raise HTTPException(
+            status_code=400,
+            detail="Maximum of 3 active memories allowed. Complete or delete one first!"
+        )
 
-    result = await memory_collection.insert_one(data)
+    # AI-generate daily tasks
+    tasks_data = await generate_memory_tasks(req.title, req.description)
 
-    # Automatically bump goal progress if linked
-    if memory.goal_id:
-        try:
-            goal_object_id = ObjectId(memory.goal_id)
-            goal = await goals_collection.find_one({"_id": goal_object_id, "email": user["email"]})
-            if goal:
-                current_progress = goal.get("progress", 0)
-                new_progress = min(100, current_progress + 10)
-                
-                update_fields = {}
-                update_fields["progress"] = new_progress
-                if new_progress == 100:
-                    update_fields["status"] = "completed"
-                    
-                await goals_collection.update_one(
-                    {"_id": goal_object_id},
-                    {"$set": update_fields}
-                )
-        except Exception as e:
-            print(f"Goal update error: {e}")
+    processed_tasks = []
+    for t in tasks_data:
+        processed_tasks.append({
+            "id": str(uuid.uuid4()),
+            "text": t.get("text", "Task"),
+            "completed": False,
+            "deadline": t.get(
+                "deadline",
+                (datetime.datetime.utcnow() + datetime.timedelta(days=1)).isoformat()[:19]
+            ),
+            "reminder_sent": False
+        })
 
-    return {"id": str(result.inserted_id)}
+    memory_doc = {
+        "user_email": email,
+        "title": req.title,
+        "description": req.description,
+        "mode": req.mode,
+        "tasks": processed_tasks,
+        "status": "active",
+        "created_at": datetime.datetime.utcnow().isoformat()
+    }
+
+    result = await memories_collection.insert_one(memory_doc)
+    return {"id": str(result.inserted_id), "message": "Memory created successfully"}
 
 
-
-# 🔹 GET USER MEMORIES (FIXED 🔥)
-@router.get("/")
+# GET /memory/list
+@router.get("/list")
 async def get_memories(authorization: str = Header(None)):
     if not authorization:
         raise HTTPException(status_code=401, detail="Token missing")
@@ -55,14 +74,17 @@ async def get_memories(authorization: str = Header(None)):
     user = decode_token(token)
 
     data = []
-    async for mem in memory_collection.find({"email": user["email"]}):
+    async for mem in memories_collection.find({"user_email": user["email"]}):
         mem["_id"] = str(mem["_id"])
+        total = len(mem.get("tasks", []))
+        done  = sum(1 for t in mem.get("tasks", []) if t.get("completed", False))
+        mem["progress"] = int((done / total * 100)) if total > 0 else 0
         data.append(mem)
 
     return data
 
 
-# 🔹 DELETE MEMORY (SECURE 🔥)
+# DELETE /memory/{id}
 @router.delete("/{id}")
 async def delete_memory(id: str, authorization: str = Header(None)):
     if not authorization:
@@ -71,9 +93,9 @@ async def delete_memory(id: str, authorization: str = Header(None)):
     token = authorization.split(" ")[1]
     user = decode_token(token)
 
-    result = await memory_collection.delete_one({
+    result = await memories_collection.delete_one({
         "_id": ObjectId(id),
-        "email": user["email"]
+        "user_email": user["email"]
     })
 
     if result.deleted_count == 0:

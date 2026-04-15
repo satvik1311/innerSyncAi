@@ -1,16 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import memory, chat, auth, goals, insights
-from services.db import goals_collection
-from services.email_service import send_goal_failure_email, send_task_reminder_email
+from routes import memory, chat, auth, task
+from services.db import memories_collection
+from services.email_service import send_task_reminder_email
 import asyncio
 import datetime
 import copy
 
+app = FastAPI(title="AI Memory Vault API")
 
-
-app = FastAPI()
-app.include_router(auth.router, prefix="/auth", tags=["Auth"])
+# ── CORS (must be added before routes) ──────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,55 +18,51 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(memory.router, prefix="/memory")
-app.include_router(chat.router, prefix="/chat")
-app.include_router(goals.router, prefix="/goals", tags=["Goals"])
-app.include_router(insights.router, prefix="/insights", tags=["Insights"])
+# ── Routers ──────────────────────────────────────────────────────────────────
+app.include_router(auth.router,   prefix="/auth",   tags=["Auth"])
+app.include_router(memory.router, prefix="/memory", tags=["Memory"])
+app.include_router(task.router,   prefix="/task",   tags=["Tasks"])
+app.include_router(chat.router,   prefix="/chat",   tags=["Chat"])
 
-async def check_expired_goals():
+
+# ── Background accountability cron ──────────────────────────────────────────
+async def check_expired_tasks():
     while True:
         try:
             now = datetime.datetime.utcnow().isoformat()
-            
-            async for goal in goals_collection.find({"status": "in_progress"}):
-                modified = False
-                updated_roadmap = copy.deepcopy(goal.get("roadmap", []))
+            async for mem in memories_collection.find({"status": "active"}):
+                modified      = False
+                updated_tasks = copy.deepcopy(mem.get("tasks", []))
 
-                # Check deeply for subtasks
-                for task in updated_roadmap:
-                    if not task.get("completed", False) and not task.get("reminder_sent", False):
-                        t_deadline = task.get("deadline", "")
-                        if t_deadline and t_deadline < now:
-                            await send_task_reminder_email(goal["email"], goal["title"], task["text"])
-                            task["reminder_sent"] = True
+                for t in updated_tasks:
+                    if not t.get("completed", False) and not t.get("reminder_sent", False):
+                        if t.get("deadline", "") < now:
+                            mode    = mem.get("mode", "soft")
+                            subject = (
+                                f"URGENT — {mem.get('title')}"
+                                if mode == "strict"
+                                else f"Reminder — {mem.get('title')}"
+                            )
+                            await send_task_reminder_email(mem["user_email"], subject, t["text"])
+                            t["reminder_sent"] = True
                             modified = True
-                
-                # Check Master Goal
-                g_deadline = goal.get("deadline", "")
-                if g_deadline and g_deadline < now:
-                    await goals_collection.update_one(
-                        {"_id": goal["_id"]}, 
-                        {"$set": {"status": "failed", "roadmap": updated_roadmap}}
+
+                if modified:
+                    await memories_collection.update_one(
+                        {"_id": mem["_id"]},
+                        {"$set": {"tasks": updated_tasks}}
                     )
-                    await send_goal_failure_email(goal["email"], goal["title"])
-                elif modified:
-                    # Update roadmap only
-                    await goals_collection.update_one(
-                        {"_id": goal["_id"]}, 
-                        {"$set": {"roadmap": updated_roadmap}}
-                    )
-                
         except Exception as e:
-            print(f"Cron error checking expired goals: {e}")
-            
-        # Sleep for 60 seconds before next sweep
+            print(f"Cron error: {e}")
+
         await asyncio.sleep(60)
+
 
 @app.on_event("startup")
 async def startup_event():
-    # Trigger the cron job to run indefinitely in the background
-    asyncio.create_task(check_expired_goals())
+    asyncio.create_task(check_expired_tasks())
+
 
 @app.get("/")
 def home():
-    return {"message": "Backend running 🚀"}
+    return {"message": "AI Memory Vault API running 🚀"}

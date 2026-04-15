@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, Sparkles, User, BrainCircuit } from "lucide-react";
+import { Send, Loader2, Sparkles, User, BrainCircuit, Volume2, Mic, MicOff } from "lucide-react";
 import API from "../../../lib/api";
 
 export const ChatInterface = () => {
@@ -21,7 +21,14 @@ export const ChatInterface = () => {
     setLoading(true);
 
     try {
-      const res = await API.post("/chat", { message: userMsg });
+      // Artificial "thinking" time (< 5 sec) as requested
+      const thinkingTime = Math.floor(Math.random() * 2000) + 1500; // 1.5s to 3.5s
+      
+      const [res] = await Promise.all([
+        API.post("/chat", { message: userMsg }),
+        new Promise(resolve => setTimeout(resolve, thinkingTime))
+      ]);
+      
       setChat((prev) => [...prev, { sender: "ai", text: res.data.reply }]);
     } catch (err) {
       setChat((prev) => [...prev, { sender: "ai", text: "I'm having trouble connecting to the timeline right now. Please try again later." }]);
@@ -31,27 +38,74 @@ export const ChatInterface = () => {
   };
 
   const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
 
   // Native Web Speech API
-  const startListening = () => {
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Your browser doesn't support speech recognition.");
       return;
     }
+
     const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognitionRef.current = recognition;
+
+    let finalTranscript = "";
 
     recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
+    
+    recognition.onend = () => {
+      setIsListening(false);
+    };
     
     recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setMessage((prev) => prev + (prev ? " " : "") + transcript);
+      let interimTranscript = "";
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+      // We set message to what we had before starting + the new final/interim
+      setMessage((prev) => {
+        // Simple heuristic to not overwrite what user already typed before we started this session.
+        // For a more robust approach we'd maintain base text state.
+        return prev;
+      });
+      // Actually, better approach:
+      setMessage(finalTranscript + interimTranscript);
     };
 
     recognition.start();
+  };
+
+  const [speakingIdx, setSpeakingIdx] = useState(null);
+
+  const speakText = (text, idx) => {
+    if ("speechSynthesis" in window) {
+      if (speakingIdx === idx) {
+        window.speechSynthesis.cancel();
+        setSpeakingIdx(null);
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.pitch = 1.0;
+      utterance.rate = 1.0;
+      utterance.onend = () => setSpeakingIdx(null);
+      setSpeakingIdx(idx);
+      window.speechSynthesis.speak(utterance);
+    }
   };
 
   return (
@@ -92,14 +146,24 @@ export const ChatInterface = () => {
                   {isUser ? <User size={16} /> : <BrainCircuit size={16} />}
                 </div>
                 <div
-                  className={`px-4 py-2.5 rounded-2xl max-w-[75%] text-sm shadow-md leading-relaxed ${
+                  className={`px-4 py-2.5 rounded-2xl max-w-[75%] text-sm shadow-md leading-relaxed flex flex-col gap-1 ${
                     isUser
                       ? "bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-tr-none"
                       : "bg-white/10 text-zinc-200 border border-white/5 rounded-tl-none backdrop-blur-sm"
                   }`}
-                  style={{ whiteSpace: "pre-wrap" }}
                 >
-                  {msg.text}
+                  <div style={{ whiteSpace: "pre-wrap" }}>{msg.text}</div>
+                  {!isUser && (
+                    <div className="flex justify-end border-t border-white/5 pt-1 mt-1">
+                      <button 
+                        onClick={() => speakText(msg.text, i)}
+                        className={`p-1.5 rounded-full transition-colors ${speakingIdx === i ? "bg-cyan-500/20 text-cyan-400 animate-pulse" : "hover:bg-white/10 text-zinc-400 hover:text-white"}`}
+                        title="Read Aloud"
+                      >
+                        <Volume2 size={14} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             );
@@ -108,16 +172,17 @@ export const ChatInterface = () => {
 
         {loading && (
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex gap-3">
-            <div className="p-2 rounded-full h-8 w-8 flex items-center justify-center bg-cyan-500/20 text-cyan-400 shrink-0">
-              <BrainCircuit size={16} />
+            <div className="p-2 rounded-full h-8 w-8 flex items-center justify-center bg-cyan-500/20 text-cyan-400 shrink-0 shadow-[0_0_10px_rgba(6,182,212,0.5)]">
+              <BrainCircuit size={16} className="animate-pulse" />
             </div>
-            <div className="px-5 py-3 rounded-2xl bg-white/10 rounded-tl-none border border-white/5 flex items-center">
-              <div className="flex gap-1">
+            <div className="px-5 py-3 rounded-2xl bg-cyan-500/10 text-cyan-400 rounded-tl-none border border-cyan-500/20 flex items-center gap-2 backdrop-blur-md">
+              <span className="text-sm font-medium tracking-wide">Thinking</span>
+              <div className="flex gap-1 items-end h-4 pb-0.5">
                 {[...Array(3)].map((_, i) => (
                   <motion.span
                     key={i}
-                    className="w-2 h-2 bg-cyan-400 rounded-full"
-                    animate={{ y: [0, -5, 0] }}
+                    className="w-1 h-1 bg-cyan-400 rounded-full"
+                    animate={{ y: [0, -3, 0], opacity: [0.5, 1, 0.5] }}
                     transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.2 }}
                   />
                 ))}
@@ -132,11 +197,11 @@ export const ChatInterface = () => {
       <div className="p-4 bg-white/5 border-t border-white/10">
         <div className="relative flex items-center glass rounded-xl pr-2 border border-white/10 bg-black/40">
           <button 
-            onClick={startListening} 
+            onClick={toggleListening} 
             className={`p-3 mr-1 transition-colors ${isListening ? "text-red-400 animate-pulse" : "text-zinc-400 hover:text-white"}`}
             title="Use Voice"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+            {isListening ? <MicOff size={18} /> : <Mic size={18} />}
           </button>
           <input
             className="w-full bg-transparent px-2 py-3 text-white placeholder-zinc-500 focus:outline-none"
