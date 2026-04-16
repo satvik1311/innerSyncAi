@@ -4,14 +4,14 @@ export default function Features() {
   const features = [
     {
       icon: Brain,
-      title: "Memory Vault",
+      title: "Sync Engine",
       description: "Securely store your thoughts, emotions, and experiences with intelligent tagging and search.",
       premium: false,
       color: "text-purple-400"
     },
     {
       icon: MessageCircle,
-      title: "Chat with Future Self",
+      title: "Future Self Sync",
       description: "AI-powered conversations with your wiser future self, learning from your past memories.",
       premium: false,
       color: "text-fuchsia-400"
@@ -58,7 +58,7 @@ export default function Features() {
             Your Personal Time Machine
           </h2>
           <p className="text-xl text-neutral-400 max-w-3xl mx-auto">
-            Experience the future of personal reflection with AI-powered tools that help you grow,
+            Experience the future of personal reflection with InnerSync tools that help you align,
             remember, and connect with your evolving self.
           </p>
         </div>

@@ -1,4 +1,5 @@
 import smtplib
+import asyncio
 from email.message import EmailMessage
 import os
 from dotenv import load_dotenv
@@ -17,13 +18,13 @@ async def send_goal_failure_email(to_email: str, goal_title: str):
     subject = f"Action Required: Your Goal '{goal_title}' has Expired"
     body = f"""Hello,
 
-This is an automated message from the AI Memory Vault.
+This is an automated message from InnerSync AI.
 
 Unfortunately, the deadline for your goal "{goal_title}" has passed without completion. 
 Your Future Self encourages you not to give up! You can always log into your dashboard, establish a new timeline, and try again.
 
 Best,
-AI Memory Vault System
+InnerSync AI System
 """
 
     # If SMTP credentials aren't set, log to console for dev testing
@@ -38,17 +39,19 @@ AI Memory Vault System
         return
 
     try:
-        msg = EmailMessage()
-        msg.set_content(body)
-        msg['Subject'] = subject
-        msg['From'] = SMTP_USER
-        msg['To'] = to_email
+        def b_send():
+            msg = EmailMessage()
+            msg.set_content(body)
+            msg['Subject'] = subject
+            msg['From'] = SMTP_USER
+            msg['To'] = to_email
 
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
-            server.send_message(msg)
-            
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                server.starttls()
+                server.login(SMTP_USER, SMTP_PASS)
+                server.send_message(msg)
+
+        await asyncio.to_thread(b_send)
         print(f"Email successfully dispatched to {to_email} for goal '{goal_title}'")
     except Exception as e:
         print(f"Failed to send email to {to_email}. Error: {e}")
@@ -68,7 +71,7 @@ Pending Task: {task_text}
 Don't let it slip entirely! Log in and check it off as soon as you have completed it.
 
 Best,
-AI Memory Vault System
+InnerSync AI System
 """
 
     if not SMTP_USER or not SMTP_PASS:
@@ -82,17 +85,19 @@ AI Memory Vault System
         return
 
     try:
-        msg = EmailMessage()
-        msg.set_content(body)
-        msg['Subject'] = subject
-        msg['From'] = SMTP_USER
-        msg['To'] = to_email
+        def b_send_rem():
+            msg = EmailMessage()
+            msg.set_content(body)
+            msg['Subject'] = subject
+            msg['From'] = SMTP_USER
+            msg['To'] = to_email
 
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
-            server.send_message(msg)
-            
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                server.starttls()
+                server.login(SMTP_USER, SMTP_PASS)
+                server.send_message(msg)
+
+        await asyncio.to_thread(b_send_rem)
         print(f"Reminder successfully dispatched to {to_email} for task '{task_text[:15]}...'")
     except Exception as e:
         print(f"Failed to send task reminder email to {to_email}. Error: {e}")

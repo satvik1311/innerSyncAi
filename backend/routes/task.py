@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from services.db import memories_collection
 from services.auth_service import decode_token
+from services.streak_service import update_streak
 from bson import ObjectId
+from services.avatar_service import refresh_avatar_state
 import datetime
 import copy
 
@@ -69,7 +71,7 @@ class CompleteTaskRequest(BaseModel):
 
 # POST /task/complete
 @router.post("/complete")
-async def complete_task(req: CompleteTaskRequest, authorization: str = Header(None)):
+async def complete_task(req: CompleteTaskRequest, background_tasks: BackgroundTasks, authorization: str = Header(None)):
     if not authorization:
         raise HTTPException(status_code=401, detail="Token missing")
 
@@ -101,5 +103,9 @@ async def complete_task(req: CompleteTaskRequest, authorization: str = Header(No
         {"_id": ObjectId(req.memory_id)},
         {"$set": {"tasks": tasks, "status": new_status}}
     )
+
+    # Refresh Avatar State
+    await refresh_avatar_state(user["email"])
+    background_tasks.add_task(update_streak, user["email"])
 
     return {"message": "Task completed", "memory_status": new_status}

@@ -22,20 +22,20 @@ export default function Hero() {
         <div className="mb-8 relative">
           <img
             src={heroImage}
-            alt="AI Memory Vault - Connect with your future self"
+            alt="InnerSync AI - Synchronize your present, master your future"
             className="w-full max-w-4xl mx-auto rounded-2xl shadow-lg animate-pulse"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-fuchsia-500 opacity-20 rounded-2xl"></div>
         </div>
 
         {/* Main Heading */}
-        <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-fuchsia-500 bg-clip-text text-transparent">
-          AI Memory Vault
+        <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-fuchsia-500 bg-clip-text text-transparent italic">
+          InnerSync <span className="text-white not-italic">AI</span>
         </h1>
 
         {/* Subtitle */}
-        <h2 className="text-2xl md:text-3xl mb-4 font-semibold text-fuchsia-400">
-          Talk to Your Future Self
+        <h2 className="text-2xl md:text-3xl mb-4 font-semibold text-fuchsia-400 tracking-wider">
+          Synchronize Your Future Self
         </h2>
 
         {/* Description */}
@@ -61,7 +61,7 @@ export default function Hero() {
             <div className="p-4 rounded-full bg-neutral-900 border border-neutral-800 shadow-md">
               <Brain className="w-8 h-8 text-purple-400" />
             </div>
-            <span className="text-sm font-medium text-neutral-200">Memory Vault</span>
+            <span className="text-sm font-medium text-neutral-200">Sync Engine</span>
           </div>
 
           <div className="flex flex-col items-center space-y-2 text-center">

@@ -1,13 +1,17 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from routes import memory, chat, auth, task
+import os
+
+os.makedirs("uploads/avatars", exist_ok=True)
+from routes import memory, chat, auth, task, user, thoughts
 from services.db import memories_collection
 from services.email_service import send_task_reminder_email
 import asyncio
 import datetime
 import copy
 
-app = FastAPI(title="AI Memory Vault API")
+app = FastAPI(title="InnerSync AI Engine")
 
 # ── CORS (must be added before routes) ──────────────────────────────────────
 app.add_middleware(
@@ -23,6 +27,10 @@ app.include_router(auth.router,   prefix="/auth",   tags=["Auth"])
 app.include_router(memory.router, prefix="/memory", tags=["Memory"])
 app.include_router(task.router,   prefix="/task",   tags=["Tasks"])
 app.include_router(chat.router,   prefix="/chat",   tags=["Chat"])
+app.include_router(user.router,   prefix="/user",   tags=["User"])
+app.include_router(thoughts.router, prefix="/thoughts", tags=["Thoughts"])
+
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
 # ── Background accountability cron ──────────────────────────────────────────
@@ -65,4 +73,4 @@ async def startup_event():
 
 @app.get("/")
 def home():
-    return {"message": "AI Memory Vault API running 🚀"}
+    return {"message": "InnerSync AI Engine Online 🚀"}

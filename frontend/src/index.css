@@ -19,9 +19,9 @@
   --color-border: var(--border);
 }
 
-/* ================= LIGHT ================= */
+/* ================= THEME DEFINITIONS ================= */
 :root {
-  --radius: 0.625rem;
+  --radius: 0.75rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -29,91 +29,71 @@
   --border: oklch(0.922 0 0);
 }
 
-/* ================= DARK ================= */
 .dark {
-  --background: oklch(0.145 0 0);
+  --background: #050505; /* Deep Obsidian */
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
+  --card: #0a0a0a;
   --card-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
+  --border: rgba(255, 255, 255, 0.08);
 }
 
 /* ================= BASE ================= */
 @layer base {
   * { @apply border-border; }
-  body { @apply bg-background text-foreground; }
+  body { 
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 
-  /* Hide scrollbars globally but keep scrolling functionality */
-  ::-webkit-scrollbar {
-    display: none;
-  }
-  * {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+  /* Hide scrollbars globally */
+  ::-webkit-scrollbar { display: none; }
+  * { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
 /* ================= UTILITIES ================= */
 @layer utilities {
-  /* Cosmic gradient */
-  .bg-gradient-cosmic {
-    background-image: linear-gradient(90deg, hsl(262 83% 58%), hsl(292 84% 61%));
+  .bg-noise {
+    background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+    background-repeat: repeat;
+    background-size: 100px;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 1;
+    position: fixed;
+    inset: 0;
   }
 
-  .text-gradient-cosmic {
-    background-image: linear-gradient(90deg, hsl(262 83% 58%), hsl(292 84% 61%));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  .shadow-glow-cyan {
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.15), 0 0 40px rgba(34, 211, 238, 0.05);
   }
 
-  /* ===== GLASS ===== */
-  .glass {
-    background: linear-gradient(
-      180deg,
-      rgba(255,255,255,0.06),
-      rgba(255,255,255,0.02)
-    );
-    backdrop-filter: blur(18px);
-    border: 1px solid rgba(255,255,255,0.08);
+  .shadow-glow-purple {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.15), 0 0 40px rgba(168, 85, 247, 0.05);
   }
 
-  /* ===== GLOW ===== */
-  .shadow-glow {
-    box-shadow:
-      0 0 0 1px rgba(255,255,255,0.05) inset,
-      0 15px 40px rgba(0, 229, 255, 0.12);
+  .glass-premium {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   }
 
-  .shadow-glow-strong {
-    box-shadow:
-      0 0 0 1px rgba(255,255,255,0.08) inset,
-      0 0 40px rgba(0, 229, 255, 0.35),
-      0 25px 60px rgba(0, 0, 0, 0.6);
+  .text-gradient-premium {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-white/90 to-white/40;
   }
 
-  .inner-glow {
-    box-shadow: inset 0 0 30px rgba(255,255,255,0.04);
+  .text-gradient-cyan {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500;
+  }
+
+  .text-gradient-purple {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-500;
   }
 }
 
-/* ================= APP BACKGROUND ================= */
-body {
-  background:
-    radial-gradient(
-      1200px 600px at 15% -10%,
-      rgba(0, 229, 255, 0.14),
-      transparent 40%
-    ),
-    radial-gradient(
-      900px 500px at 85% 10%,
-      rgba(99, 102, 241, 0.18),
-      transparent 45%
-    ),
-    radial-gradient(
-      700px 400px at 50% 120%,
-      rgba(168, 85, 247, 0.12),
-      transparent 50%
-    ),
-    oklch(0.145 0 0);
+/* ================= LAYOUT ================= */
+#root {
+  position: relative;
+  z-index: 10;
 }
+

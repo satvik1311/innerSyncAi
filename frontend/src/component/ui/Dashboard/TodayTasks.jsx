@@ -11,6 +11,7 @@ const TodayTasks = () => {
   const [loading, setLoading] = useState(true);
   const [completing, setCompleting] = useState(null); // task id being completed
   const [tab, setTab] = useState("pending");
+  const [feedback, setFeedback] = useState(null);
 
   const fetchTasks = async () => {
     setLoading(true);
@@ -35,6 +36,16 @@ const TodayTasks = () => {
     try {
       await API.post("/task/complete", { memory_id: memoryId, task_id: taskId });
       setTasks(prev => prev.filter(t => t.id !== taskId));
+      
+      const reactions = [
+        "Task cleared.", 
+        "Good. Keep moving.", 
+        "One less excuse.", 
+        "Momentum locked.", 
+        "Execution verified."
+      ];
+      setFeedback(reactions[Math.floor(Math.random() * reactions.length)]);
+      setTimeout(() => setFeedback(null), 3500);
     } catch (e) {
       console.error(e);
     } finally {
@@ -54,7 +65,21 @@ const TodayTasks = () => {
         <div className="sticky top-0 h-screen w-full"><Sidebar /></div>
       </div>
 
-      <main className="flex-1 p-6 md:p-10 flex flex-col items-center">
+      <main className="flex-1 p-6 md:p-10 flex flex-col items-center relative">
+        {/* Feedback Toast */}
+        <AnimatePresence>
+          {feedback && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed top-10 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 bg-cyan-500/10 backdrop-blur-xl border border-cyan-500/30 text-cyan-400 font-bold tracking-wide rounded-full shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center gap-2"
+            >
+              <Target size={16} /> {feedback}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div className="w-full max-w-2xl">
 
           <button onClick={() => navigate("/dashboard")}

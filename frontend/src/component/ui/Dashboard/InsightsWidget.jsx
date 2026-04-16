@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Lightbulb, Loader2, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
+import { Sparkles, Loader2, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import API from "../../../lib/api";
 
 export const InsightsWidget = () => {
@@ -8,51 +8,44 @@ export const InsightsWidget = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchInsights = async () => {
-      try {
-        const res = await API.get("/insights");
-        setInsights(res.data);
-      } catch (err) {
-        console.error("Insights error");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchInsights();
+    API.get("/user/insights")
+      .then(res => setInsights(res.data || []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   return (
-    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl h-full flex flex-col relative overflow-hidden">
-      {/* Decorative gradient */}
-      <div className="absolute top-[-50px] right-[-50px] w-32 h-32 bg-cyan-500/20 blur-[50px] rounded-full pointer-events-none" />
+    <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-glow flex flex-col h-full">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="font-bold text-white flex items-center gap-2">
+          <Zap size={17} className="text-amber-400" /> Behavioral Insights
+        </h2>
+        {loading && <Loader2 size={16} className="text-zinc-500 animate-spin" />}
+      </div>
 
-      <h3 className="font-semibold text-white flex items-center gap-2 mb-6">
-        <Sparkles className="text-yellow-400" size={18} /> AI Discoveries
-      </h3>
+      <div className="flex-1 flex flex-col gap-3">
+        {!loading && insights.length === 0 && (
+          <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 text-sm py-4 gap-2">
+            <Sparkles size={24} className="text-purple-500/40" />
+            <p>Gathering enough data to analyze your behavior.</p>
+          </div>
+        )}
 
-      {loading ? (
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="animate-spin text-cyan-400" size={24} />
-        </div>
-      ) : (
-        <div className="flex-1 space-y-4 overflow-y-auto pr-1">
-          {insights.map((item, i) => (
-            <motion.div 
-              key={i}
+        <AnimatePresence>
+          {insights.map((insight, idx) => (
+            <motion.div
+              key={idx}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className="p-4 rounded-2xl bg-gradient-to-br from-white/5 to-transparent border border-white/10 hover:border-cyan-500/30 transition-colors"
+              transition={{ delay: idx * 0.1 }}
+              className="p-3 rounded-xl bg-white/5 border border-white/5 hover:border-purple-500/30 transition-colors"
             >
-              <h4 className="text-cyan-400 font-medium text-sm mb-1">{item.title}</h4>
-              <p className="text-zinc-400 text-xs leading-relaxed">{item.desc}</p>
+              <h4 className="text-sm font-semibold text-zinc-200 mb-1 leading-tight">{insight.title}</h4>
+              <p className="text-xs text-zinc-400 leading-snug">{insight.desc}</p>
             </motion.div>
           ))}
-          {insights.length === 0 && (
-             <p className="text-sm text-zinc-500 text-center">No insights available. Add more memories.</p>
-          )}
-        </div>
-      )}
-    </div>
+        </AnimatePresence>
+      </div>
+    </section>
   );
 };

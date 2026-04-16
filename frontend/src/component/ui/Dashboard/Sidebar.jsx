@@ -7,6 +7,10 @@ import {
   MessageSquare,
   Plus,
   LogOut,
+  User,
+  PenLine,
+  Map,
+  Network,
 } from "lucide-react";
 
 export const Sidebar = () => {
@@ -15,8 +19,12 @@ export const Sidebar = () => {
 
   const navItems = [
     { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+    { label: "Capture Thoughts", icon: PenLine, path: "/dashboard/thoughts" },
     { label: "Today's Tasks", icon: CheckSquare, path: "/dashboard/tasks" },
     { label: "Future Self", icon: MessageSquare, path: "/dashboard/chat" },
+    { label: "Roadmap", icon: Map, path: "/dashboard/roadmap" },
+    { label: "Neural Map", icon: Network, path: "/dashboard/resonance" },
+    { label: "Identity & Core", icon: User, path: "/dashboard/profile" },
   ];
 
   const handleLogout = () => {
@@ -36,14 +44,14 @@ export const Sidebar = () => {
 
       {/* logo */}
       <div className="flex items-center gap-3 mb-10 z-10">
-        <div className="p-2.5 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-500
-          shadow-[0_0_20px_rgba(6,182,212,0.4)]">
-          <Brain className="text-white" size={22} />
+        <div className="p-1 rounded-xl bg-white/5 border border-white/10
+          shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+          <img src="/logo.png" alt="Logo" className="w-9 h-9 object-contain" />
         </div>
         <div>
           <h1 className="font-bold text-lg bg-gradient-to-r from-cyan-400 to-purple-400
-            bg-clip-text text-transparent leading-tight">Memory Vault</h1>
-          <p className="text-[10px] text-zinc-500 tracking-widest uppercase">AI Future Self</p>
+            bg-clip-text text-transparent leading-tight">InnerSync AI</h1>
+          <p className="text-[10px] text-zinc-500 tracking-widest uppercase">Cognitive Sync Center</p>
         </div>
       </div>
 

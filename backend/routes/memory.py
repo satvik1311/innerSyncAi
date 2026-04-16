@@ -34,7 +34,7 @@ async def create_memory(req: CreateMemoryRequest, authorization: str = Header(No
             detail="Maximum of 3 active memories allowed. Complete or delete one first!"
         )
 
-    # AI-generate daily tasks
+    # AI-generate roadmap tasks
     tasks_data = await generate_memory_tasks(req.title, req.description)
 
     processed_tasks = []
@@ -43,10 +43,13 @@ async def create_memory(req: CreateMemoryRequest, authorization: str = Header(No
             "id": str(uuid.uuid4()),
             "text": t.get("text", "Task"),
             "completed": False,
-            "deadline": t.get(
-                "deadline",
+            "start_date": t.get("start_date", datetime.datetime.utcnow().isoformat()[:19]),
+            "end_date": t.get(
+                "end_date",
                 (datetime.datetime.utcnow() + datetime.timedelta(days=1)).isoformat()[:19]
             ),
+            # Keep deadline mapping backward compatible if frontend uses it directly on some pages, though we'll deprecate it eventually.
+            "deadline": t.get("end_date", (datetime.datetime.utcnow() + datetime.timedelta(days=1)).isoformat()[:19]),
             "reminder_sent": False
         })
 
@@ -82,6 +85,31 @@ async def get_memories(authorization: str = Header(None)):
         data.append(mem)
 
     return data
+
+
+# GET /memory/{id}
+@router.get("/{id}")
+async def get_memory(id: str, authorization: str = Header(None)):
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Token missing")
+
+    token = authorization.split(" ")[1]
+    user = decode_token(token)
+
+    mem = await memories_collection.find_one({
+        "_id": ObjectId(id),
+        "user_email": user["email"]
+    })
+    
+    if not mem:
+        raise HTTPException(status_code=404, detail="Memory not found")
+
+    mem["_id"] = str(mem["_id"])
+    total = len(mem.get("tasks", []))
+    done  = sum(1 for t in mem.get("tasks", []) if t.get("completed", False))
+    mem["progress"] = int((done / total * 100)) if total > 0 else 0
+
+    return mem
 
 
 # DELETE /memory/{id}

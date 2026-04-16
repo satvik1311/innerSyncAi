@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
+import AvatarPreview from "./AvatarPreview";
 import {
   Sparkles, Target, CheckCircle2, Circle, BrainCircuit,
   Send, Loader2, User, Activity, Trophy, Flame, Plus,
@@ -11,18 +12,14 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer
 } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
+import { InsightsWidget } from "./InsightsWidget";
+import FutureYouCard from "./FutureYouCard";
+import EvolutionCard from "./EvolutionCard";
+
 
 /* ─── helpers ─────────────────────────────────────────── */
 const getUserName = () => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) return "Explorer";
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    const name = payload.email?.split("@")[0] || "Explorer";
-    return name.charAt(0).toUpperCase() + name.slice(1);
-  } catch {
-    return "Explorer";
-  }
+  return "Explorer";
 };
 
 /* ─── Stat Card ───────────────────────────────────────── */
@@ -32,16 +29,21 @@ const STAT_STYLES = {
   amber:  { wrap: "bg-gradient-to-br from-amber-500/20 to-amber-500/0 border-amber-500/30",   icon: "text-amber-400",  glow: "bg-amber-400" },
   green:  { wrap: "bg-gradient-to-br from-green-500/20 to-green-500/0 border-green-500/30",   icon: "text-green-400",  glow: "bg-green-400" },
 };
-const StatCard = ({ icon: Icon, label, value, accent = "cyan", sub }) => {
+const StatCard = ({ icon: Icon, label, value, accent = "cyan", sub, index = 0 }) => {
   const s = STAT_STYLES[accent];
   return (
-    <div className={`relative overflow-hidden p-5 rounded-2xl border backdrop-blur-xl flex flex-col gap-1 ${s.wrap}`}>
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1, ease: [0.23, 1, 0.32, 1] }}
+      className={`relative overflow-hidden p-5 rounded-2xl border backdrop-blur-xl flex flex-col gap-1 ${s.wrap}`}
+    >
       <div className={`absolute -top-4 -right-4 w-20 h-20 rounded-full blur-2xl opacity-40 ${s.glow}`} />
       <Icon size={20} className={`${s.icon} mb-1`} />
-      <p className="text-2xl font-bold text-white">{value}</p>
+      <p className="text-2xl font-bold text-white leading-tight">{value}</p>
       <p className="text-xs text-zinc-400 font-medium">{label}</p>
-      {sub && <p className="text-xs text-zinc-600 mt-1">{sub}</p>}
-    </div>
+      {sub && <p className="text-[10px] text-zinc-600 mt-1">{sub}</p>}
+    </motion.div>
   );
 };
 
@@ -66,11 +68,16 @@ const ProgressRing = ({ pct, size = 80, stroke = 7, accent = "#06b6d4" }) => {
 };
 
 /* ─── Memory Card ─────────────────────────────────────── */
-const MemoryCard = ({ mem }) => {
+const MemoryCard = ({ mem, index = 0 }) => {
   const pct = mem.progress || 0;
   const isStrict = mem.mode === "strict";
   return (
-    <div className="relative overflow-hidden p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-500/30 transition-all duration-300 group flex gap-4 items-center">
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.3 + (index * 0.05) }}
+      className="relative overflow-hidden p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-500/30 transition-all duration-300 group flex gap-4 items-center"
+    >
       <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
       <div className="relative shrink-0">
         <ProgressRing pct={pct} size={60} stroke={5} accent={isStrict ? "#f87171" : "#06b6d4"} />
@@ -79,11 +86,14 @@ const MemoryCard = ({ mem }) => {
       <div className="flex-1 min-w-0 z-10">
         <p className="text-sm font-semibold text-white truncate">{mem.title}</p>
         <p className="text-xs text-zinc-500 mt-0.5 truncate">{mem.description}</p>
-        <span className={`mt-1.5 inline-block text-[10px] px-2 py-0.5 rounded-full font-medium ${isStrict ? "bg-red-500/15 text-red-400" : "bg-cyan-500/15 text-cyan-400"}`}>
-          {isStrict ? "⚡ Strict" : "✦ Soft"}
-        </span>
+        <div className="flex items-center gap-2 mt-1.5">
+          <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full font-medium ${isStrict ? "bg-red-500/15 text-red-400" : "bg-cyan-500/15 text-cyan-400"}`}>
+            {isStrict ? "⚡ Strict" : "✦ Soft"}
+          </span>
+          <span className="text-[10px] text-zinc-600 font-medium tracking-wide">Sync: {pct}%</span>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -118,12 +128,15 @@ const UserDashboard = () => {
   const [memories, setMemories]   = useState([]);
   const [tasks, setTasks]         = useState([]);
   const [chartData, setChartData] = useState([]);
+  const [profile, setProfile]     = useState(null);
+  const [streakData, setStreakData] = useState(null);
   const chatEndRef = useRef(null);
 
   // Chat state
   const [chat, setChat]       = useState([]);
   const [msg, setMsg]         = useState("");
   const [chatLoading, setChatLoading] = useState(false);
+  const [showAvatarCreator, setShowAvatarCreator] = useState(false);
 
   /* fetch memories */
   useEffect(() => {
@@ -143,6 +156,8 @@ const UserDashboard = () => {
       setChartData(pts);
     }).catch(console.error);
 
+    API.get("/user/profile").then(r => setProfile(r.data)).catch(console.error);
+    API.get("/user/streak").then(r => setStreakData(r.data)).catch(console.error);
     API.get("/task/today").then(r => setTasks(r.data || [])).catch(console.error);
   }, [navigate]);
 
@@ -155,6 +170,7 @@ const UserDashboard = () => {
     try {
       await API.post("/task/complete", { memory_id: memId, task_id: taskId });
       setTasks(prev => prev.filter(t => t.id !== taskId));
+      // Optionally could add top-level feedback here but keeping dashboard focused.
     } catch (e) { console.error(e); }
   };
 
@@ -171,6 +187,22 @@ const UserDashboard = () => {
       setChat(p => [...p, { sender: "ai", text: "Connection to future timeline lost. Try again." }]);
     } finally {
       setChatLoading(false);
+    }
+  };
+
+  const handleAvatarSync = async (data) => {
+    try {
+      const res = await API.put("/user/avatar_sync", data);
+      // Update local profile state
+      setProfile(prev => ({ 
+        ...prev, 
+        avatar_seed: data.avatar_seed, 
+        avatar_style: data.avatar_style,
+        avatar_score: res.data.stats.score,
+        avatar_state: res.data.stats.state
+      }));
+    } catch (err) {
+      console.error("Failed to sync 2D avatar", err);
     }
   };
 
@@ -201,42 +233,42 @@ const UserDashboard = () => {
       {/* ── main ── */}
       <main className="flex-1 p-5 md:p-8 overflow-y-auto">
 
-        {/* header */}
-        <header className="flex items-center justify-between mb-8">
-          <div>
-            <p className="text-xs text-zinc-500 font-medium tracking-widest uppercase mb-1">
-              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-            </p>
-            <h1 className="text-3xl font-extrabold text-white">
-              Hey, <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">{userName}</span> 👋
-            </h1>
-            <p className="text-sm text-zinc-400 mt-1 flex items-center gap-1.5">
-              <Sparkles size={13} className="text-cyan-400" />
-              Your accountability dashboard — stay ahead of your future self.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="relative p-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition">
-              <Bell size={18} className="text-zinc-300" />
-              {pendingTasks > 0 && (
-                <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-zinc-950 animate-pulse" />
-              )}
-            </button>
-            <button
-              onClick={() => navigate("/dashboard/new")}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-semibold text-sm shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] hover:scale-105 transition-all"
-            >
-              <Plus size={16} /> New Memory
-            </button>
+        <header className="mb-10">
+          <EvolutionCard profile={profile} streakData={streakData} />
+          
+          <div className="flex items-center justify-between mt-8">
+            <div className="hidden sm:block">
+              <p className="text-xs text-zinc-500 font-medium tracking-widest uppercase mb-1">
+                {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+              </p>
+              <p className="text-sm text-zinc-400 flex items-center gap-1.5 leading-none">
+                <Sparkles size={13} className="text-cyan-400" />
+                Synchronize your present, master your future.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button className="relative p-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition">
+                <Bell size={18} className="text-zinc-300" />
+                {pendingTasks > 0 && (
+                  <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-zinc-950 animate-pulse" />
+                )}
+              </button>
+              <button
+                onClick={() => navigate("/dashboard/new")}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-semibold text-sm shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] hover:scale-105 transition-all"
+              >
+                <Plus size={16} /> New Memory
+              </button>
+            </div>
           </div>
         </header>
 
         {/* ── Stats Row ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <StatCard icon={Target}      label="Active Memories"   value={`${activeMemories.length}/3`}   accent="cyan"   sub="Max 3 at once" />
-          <StatCard icon={Flame}       label="Pending Tasks"     value={pendingTasks}                    accent="amber"  sub="Due today" />
-          <StatCard icon={Activity}    label="Avg Progress"      value={`${avgProgress}%`}               accent="purple" sub="Across memories" />
-          <StatCard icon={Trophy}      label="Completed"         value={completedMemories}               accent="green"  sub="All time" />
+          <StatCard icon={Target}      label="Active Memories"   value={`${activeMemories.length}/3`}   accent="cyan"   sub="Max 3 at once" index={0} />
+          <StatCard icon={Flame}       label="Pending Tasks"     value={pendingTasks}                    accent="amber"  sub="Due today"      index={1} />
+          <StatCard icon={Activity}    label="Avg Progress"      value={`${avgProgress}%`}               accent="purple" sub="Across goals"    index={2} />
+          <StatCard icon={Trophy}      label="Completed"         value={completedMemories}               accent="green"  sub="Finalized"      index={3} />
         </div>
 
         {/* ── BENTO GRID ── */}
@@ -246,7 +278,12 @@ const UserDashboard = () => {
           <div className="xl:col-span-2 flex flex-col gap-5">
 
             {/* Active Memories */}
-            <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-glow">
+            <motion.section 
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-glow"
+            >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-white flex items-center gap-2">
                   <Target size={17} className="text-cyan-400" /> Active Memories
@@ -268,10 +305,10 @@ const UserDashboard = () => {
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
-                  {activeMemories.map(m => <MemoryCard key={m._id} mem={m} />)}
+                  {activeMemories.map((m, i) => <MemoryCard key={m._id} mem={m} index={i} />)}
                 </div>
               )}
-            </section>
+            </motion.section>
 
             {/* Today's Tasks */}
             <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-glow">
@@ -303,42 +340,54 @@ const UserDashboard = () => {
             </section>
 
             {/* Progress Chart */}
-            <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-glow">
-              <div className="flex items-center justify-between mb-5">
-                <div>
-                  <h2 className="font-bold text-white flex items-center gap-2">
-                    <Activity size={17} className="text-purple-400" /> Progress Overview
-                  </h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">Completion % across your memories</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-glow">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <h2 className="font-bold text-white flex items-center gap-2">
+                      <Activity size={17} className="text-purple-400" /> Progress Overview
+                    </h2>
+                    <p className="text-xs text-zinc-500 mt-0.5">Completion % across your memories</p>
+                  </div>
                 </div>
-              </div>
-              <div className="h-[180px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="prog" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="#a855f7" stopOpacity={0.5} />
-                        <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="name" stroke="#3f3f46" fontSize={11} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#3f3f46" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} />
-                    <Tooltip
-                      contentStyle={{ background: "rgba(9,9,11,0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff" }}
-                      itemStyle={{ color: "#a855f7" }}
-                    />
-                    <Area type="monotone" dataKey="progress" stroke="#a855f7" strokeWidth={2.5} fill="url(#prog)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </section>
+                <div className="h-[180px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="prog" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%"  stopColor="#a855f7" stopOpacity={0.5} />
+                          <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="name" stroke="#3f3f46" fontSize={11} tickLine={false} axisLine={false} />
+                      <YAxis stroke="#3f3f46" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} />
+                      <Tooltip
+                        contentStyle={{ background: "rgba(9,9,11,0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff" }}
+                        itemStyle={{ color: "#a855f7" }}
+                      />
+                      <Area type="monotone" dataKey="progress" stroke="#a855f7" strokeWidth={2.5} fill="url(#prog)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </section>
+
+              {/* Insights Widget */}
+              <InsightsWidget />
+            </div>
 
           </div>
 
           {/* ─ RIGHT COLUMN: Future Self Chat ─ */}
-          <div className="xl:col-span-1">
-            <section className="sticky top-5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-glow flex flex-col overflow-hidden"
-              style={{ height: "calc(100vh - 160px)", minHeight: 500 }}>
+          <div className="xl:col-span-1 flex flex-col gap-5">
+            
+            {/* 2D Future Self Card */}
+            <FutureYouCard 
+              profile={profile} 
+              onSync={handleAvatarSync} 
+            />
+
+            <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-glow flex flex-col overflow-hidden"
+              style={{ height: "calc(100vh - 580px)", minHeight: 350 }}>
 
               {/* chat header */}
               <div className="p-4 border-b border-white/10 flex items-center gap-3 bg-white/3">

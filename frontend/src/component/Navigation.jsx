@@ -13,11 +13,11 @@ export default function Navigation() {
 
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-gradient-cosmic shadow-glow-primary">
-              <Brain className="w-6 h-6 text-primary-foreground" />
+            <div className="p-1.5 rounded-lg bg-white/5 border border-white/10 shadow-glow-primary">
+              <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
             </div>
-            <span className="text-xl font-bold text-gradient-cosmic">
-              Memory Vault
+            <span className="text-xl font-bold text-gradient-cosmic tracking-tight">
+              InnerSync <span className="text-white">AI</span>
             </span>
           </div>
 
