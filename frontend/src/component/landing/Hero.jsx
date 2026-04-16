@@ -2,9 +2,11 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, BrainCircuit, MessageSquare, ArrowRight, Play } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 const Hero = ({ onPreview }) => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   return (
     <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
@@ -52,10 +54,11 @@ const Hero = ({ onPreview }) => {
             className="flex flex-col sm:flex-row items-center gap-5 mb-20"
           >
             <button 
-              onClick={() => navigate("/signup")}
-              className="px-8 py-4 rounded-2xl bg-white text-black font-extrabold text-lg transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:shadow-[0_0_50px_rgba(255,255,255,0.4)]"
+              onClick={() => navigate(isAuthenticated ? "/dashboard" : "/signup")}
+              className="group flex items-center gap-2 px-8 py-4 rounded-2xl bg-white text-black font-extrabold text-lg transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:shadow-[0_0_50px_rgba(255,255,255,0.4)]"
             >
-              Get Started for Free
+              {isAuthenticated ? "Open Your Vault" : "Get Started for Free"}
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </button>
             <button 
               onClick={onPreview}

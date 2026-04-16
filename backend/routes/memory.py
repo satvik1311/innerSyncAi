@@ -2,6 +2,7 @@ from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel
 from services.db import memories_collection
 from services.ai_service import generate_memory_tasks
+from services.notification_service import create_notification
 from bson import ObjectId
 from services.auth_service import decode_token
 import datetime
@@ -64,6 +65,15 @@ async def create_memory(req: CreateMemoryRequest, authorization: str = Header(No
     }
 
     result = await memories_collection.insert_one(memory_doc)
+    
+    # Notify User
+    await create_notification(
+        email=email,
+        type="task_created",
+        message=f"Sync established! {len(processed_tasks)} tasks generated for mission: {req.title}",
+        link=f"/dashboard/roadmap"
+    )
+
     return {"id": str(result.inserted_id), "message": "Memory created successfully"}
 
 

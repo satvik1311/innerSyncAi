@@ -173,3 +173,7 @@ Return ONLY valid JSON in this format:
     except Exception as e:
         print(f"Task generation error: {e}")
         return []
+
+async def generate_goal_roadmap(title: str, target: str, description: str, deadline: str) -> list:
+    """Wrapper for goals.py to generate a roadmap using the same logic as memory tasks."""
+    return await generate_memory_tasks(title, f"{target} - {description} (Deadline: {deadline})")

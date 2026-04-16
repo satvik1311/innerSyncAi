@@ -1,5 +1,7 @@
 import React from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import ProtectedRoute from "./component/auth/ProtectedRoute";
 
 import Navigation  from "./component/Navigation";
 import LandingPage from "./component/LandingPage";
@@ -14,10 +16,12 @@ import ProfileSettings from "./component/ui/Dashboard/ProfileSettings";
 import ThoughtsPage from "./component/ui/Dashboard/ThoughtsPage";
 import RoadmapPage from "./component/ui/Dashboard/RoadmapPage";
 import ResonancePage from "./component/ui/Dashboard/ResonancePage";
+import AchievementsPage from "./component/ui/Dashboard/AchievementsPage";
 
 import PublicProfile from "./component/PublicProfile";
 
-const App = () => {
+const AppContent = () => {
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
   const isHome = location.pathname === "/";
   const hideLanding = isHome || 
@@ -26,26 +30,44 @@ const App = () => {
     location.pathname.startsWith("/user/");
 
   return (
-    <div className="min-h-screen font-inter">
+    <div className="min-h-screen font-inter bg-black">
       {!hideLanding && <Navigation />}
 
       <Routes>
         <Route path="/"              element={<LandingPage />} />
-        <Route path="/login"         element={<Login />} />
-        <Route path="/signup"        element={<Signup />} />
+        
+        {/* Auth routes with smart redirect */}
+        <Route 
+          path="/login" 
+          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} 
+        />
+        <Route 
+          path="/signup" 
+          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />} 
+        />
+        
         <Route path="/user/:username" element={<PublicProfile />} />
 
-        {/* Dashboard routes */}
-        <Route path="/dashboard"     element={<UserDashboard />} />
-        <Route path="/dashboard/new" element={<NewMemory />} />
-        <Route path="/dashboard/tasks" element={<TodayTasks />} />
-        <Route path="/dashboard/chat"  element={<ChatPage />} />
-        <Route path="/dashboard/profile" element={<ProfileSettings />} />
-        <Route path="/dashboard/thoughts" element={<ThoughtsPage />} />
-        <Route path="/dashboard/roadmap" element={<RoadmapPage />} />
-        <Route path="/dashboard/resonance" element={<ResonancePage />} />
+        {/* Dashboard routes - Protected */}
+        <Route path="/dashboard"     element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
+        <Route path="/dashboard/new" element={<ProtectedRoute><NewMemory /></ProtectedRoute>} />
+        <Route path="/dashboard/tasks" element={<ProtectedRoute><TodayTasks /></ProtectedRoute>} />
+        <Route path="/dashboard/chat"  element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+        <Route path="/dashboard/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+        <Route path="/dashboard/thoughts" element={<ProtectedRoute><ThoughtsPage /></ProtectedRoute>} />
+        <Route path="/dashboard/roadmap" element={<ProtectedRoute><RoadmapPage /></ProtectedRoute>} />
+        <Route path="/dashboard/resonance" element={<ProtectedRoute><ResonancePage /></ProtectedRoute>} />
+        <Route path="/dashboard/achievements" element={<ProtectedRoute><AchievementsPage /></ProtectedRoute>} />
       </Routes>
     </div>
+  );
+};
+
+const App = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 

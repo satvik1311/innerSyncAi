@@ -37,7 +37,7 @@ export default function ThoughtsPage() {
 
   return (
     <div className="flex h-screen bg-[#050505] text-white overflow-hidden">
-      <div className="w-64 flex-shrink-0 border-r border-white/5">
+      <div className="w-72 flex-shrink-0 border-r border-white/5">
         <Sidebar />
       </div>
 

@@ -111,3 +111,30 @@ async def chat(data: dict, authorization: str = Header(None)):
         "conversation_id": conv_id, 
         "title": thread.get("title")
     }
+
+@router.delete("/threads/{conversation_id}")
+async def delete_thread(conversation_id: str, authorization: str = Header(None)):
+    """Deletes a specific thread and its associated messages."""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Token missing")
+    token = authorization.split(" ")[1]
+    user = decode_token(token)
+
+    # Delete both thread meta and messages
+    await threads_collection.delete_one({"conversation_id": conversation_id, "email": user["email"]})
+    await conversations_collection.delete_many({"conversation_id": conversation_id, "email": user["email"]})
+    
+    return {"status": "success", "message": "Thread deleted"}
+
+@router.delete("/threads")
+async def delete_all_threads(authorization: str = Header(None)):
+    """Wipes all conversation data for the user."""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Token missing")
+    token = authorization.split(" ")[1]
+    user = decode_token(token)
+
+    await threads_collection.delete_many({"email": user["email"]})
+    await conversations_collection.delete_many({"email": user["email"]})
+    
+    return {"status": "success", "message": "History cleared"}

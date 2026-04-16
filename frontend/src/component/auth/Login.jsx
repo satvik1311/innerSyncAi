@@ -1,11 +1,13 @@
-import API from "../../lib/api";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
+import API from "../../lib/api";
+import { useAuth } from "../../context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,7 +20,7 @@ const Login = () => {
     try {
       const res = await API.post("/auth/login", { email, password });
       if (res.data.token) {
-        localStorage.setItem("token", res.data.token);
+        login(res.data.token, res.data.user);
         navigate("/dashboard");
       }
     } catch (err) {

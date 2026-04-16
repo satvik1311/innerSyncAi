@@ -5,6 +5,8 @@ from services.auth_service import decode_token, hash_password, verify_password
 from services.avatar_service import refresh_avatar_state
 from services.personality_service import update_behavioral_insights, analyze_user_patterns, generate_ai_nickname
 from services.streak_service import get_streak_stats, update_streak
+from services.notification_service import manager, create_notification
+from fastapi import WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -240,6 +242,51 @@ async def get_streak_route(authorization: str = Header(None)):
         stats = await get_streak_stats(email)
 
     return stats
+
+# --- Notifications ---
+
+@router.get("/notifications")
+async def get_notifications(authorization: str = Header(None)):
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Token missing")
+    token = authorization.split(" ")[1]
+    email = decode_token(token)["email"]
+    
+    notifications = []
+    async for n in db.get_collection("notifications").find({"user_email": email}).sort("created_at", -1).limit(50):
+        n["_id"] = str(n["_id"])
+        notifications.append(n)
+    return notifications
+
+@router.post("/notifications/read-all")
+async def mark_notifications_read(authorization: str = Header(None)):
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Token missing")
+    token = authorization.split(" ")[1]
+    email = decode_token(token)["email"]
+    
+    await db.get_collection("notifications").update_many(
+        {"user_email": email, "is_read": False},
+        {"$set": {"is_read": True}}
+    )
+    return {"message": "All notifications marked as read"}
+
+@router.websocket("/ws/notifications/{token}")
+async def websocket_endpoint(websocket: WebSocket, token: str):
+    try:
+        payload = decode_token(token)
+        email = payload["email"]
+    except Exception:
+        await websocket.close(code=4001)
+        return
+
+    await manager.connect(websocket, email)
+    try:
+        while True:
+            # Keep connection alive
+            data = await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, email)
 
 @router.post("/insights/analyze")
 async def post_analyze_insights(background_tasks: BackgroundTasks, authorization: str = Header(None)):

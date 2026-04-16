@@ -1,7 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header
 from models.user_model import User
 from services.db import db
-from services.auth_service import hash_password, verify_password, create_token
+from services.auth_service import hash_password, verify_password, create_token, decode_token
 import datetime
 from services.avatar_service import refresh_avatar_state
 
@@ -47,12 +47,42 @@ async def signup(user: User):
             }
         })
 
-        return {"message": "User created", "username": username}
+        # Auto-login after signup
+        db_user = await users_collection.find_one({"email": email})
+        db_user["_id"] = str(db_user["_id"])
+        if "password" in db_user:
+            del db_user["password"]
+            
+        token = create_token({"email": email})
+        return {"message": "User created", "token": token, "user": db_user}
 
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/me")
+async def get_me(authorization: str = Header(None)):
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Token missing")
+    
+    try:
+        token = authorization.split(" ")[1]
+        payload = decode_token(token)
+        email = payload["email"]
+        
+        user = await users_collection.find_one({"email": email})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        user["_id"] = str(user["_id"])
+        # Remove sensitive data
+        if "password" in user:
+            del user["password"]
+            
+        return user
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=str(e))
 
 
 # 🔹 LOGIN
@@ -96,7 +126,13 @@ async def login(user: User):
         await refresh_avatar_state(email)
 
         token = create_token({"email": email})
-        return {"token": token}
+        
+        # Prepare user data for frontend session
+        db_user["_id"] = str(db_user["_id"])
+        if "password" in db_user:
+            del db_user["password"]
+            
+        return {"token": token, "user": db_user}
 
     except HTTPException:
         raise

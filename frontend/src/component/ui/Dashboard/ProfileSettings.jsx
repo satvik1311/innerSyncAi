@@ -6,6 +6,7 @@ import { Sidebar } from "./Sidebar";
 import API from "../../../lib/api";
 import GenderSelector from "./GenderSelector";
 import AvatarPreview from "./AvatarPreview";
+import { useAuth } from "../../../context/AuthContext";
 
 const ProfileSettings = () => {
   const navigate = useNavigate();
@@ -141,9 +142,10 @@ const ProfileSettings = () => {
     } finally { setSaving(false); }
   };
 
+  const { logout } = useAuth();
+
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
+    logout();
   };
 
   return (

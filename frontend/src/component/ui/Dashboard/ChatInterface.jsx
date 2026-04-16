@@ -3,15 +3,40 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Loader2, Sparkles, User, BrainCircuit, Volume2, Mic, MicOff } from "lucide-react";
 import API from "../../../lib/api";
 
-export const ChatInterface = () => {
+export const ChatInterface = ({ initialId = null, onMessageSent }) => {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [activeConversationId, setActiveConversationId] = useState(initialId);
   const chatEndRef = useRef(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat, loading]);
+
+  useEffect(() => {
+    if (initialId) {
+      setActiveConversationId(initialId);
+      fetchHistory(initialId);
+    }
+  }, [initialId]);
+
+  const fetchHistory = async (id) => {
+    try {
+      setLoading(true);
+      const res = await API.get(`/chat/history/${id}`);
+      // Backend returns [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
+      const formatted = res.data.map(m => ({
+        sender: m.role === "user" ? "user" : "ai",
+        text: m.content
+      }));
+      setChat(formatted);
+    } catch (err) {
+      console.error("Failed to fetch history", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const sendMessage = async () => {
     if (!message.trim()) return;
@@ -21,17 +46,24 @@ export const ChatInterface = () => {
     setLoading(true);
 
     try {
-      // Artificial "thinking" time (< 5 sec) as requested
-      const thinkingTime = Math.floor(Math.random() * 2000) + 1500; // 1.5s to 3.5s
+      const thinkingTime = Math.floor(Math.random() * 1000) + 1000;
       
       const [res] = await Promise.all([
-        API.post("/chat", { message: userMsg }),
+        API.post("/chat", { 
+          message: userMsg, 
+          conversation_id: activeConversationId 
+        }),
         new Promise(resolve => setTimeout(resolve, thinkingTime))
       ]);
       
+      if (res.data.conversation_id && !activeConversationId) {
+        setActiveConversationId(res.data.conversation_id);
+      }
+      
       setChat((prev) => [...prev, { sender: "ai", text: res.data.reply }]);
+      if (onMessageSent) onMessageSent();
     } catch (err) {
-      setChat((prev) => [...prev, { sender: "ai", text: "I'm having trouble connecting to the timeline right now. Please try again later." }]);
+      setChat((prev) => [...prev, { sender: "ai", text: "The timeline is shifting. I couldn't reach through. Try again." }]);
     } finally {
       setLoading(false);
     }

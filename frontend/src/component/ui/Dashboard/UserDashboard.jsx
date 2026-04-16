@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { InsightsWidget } from "./InsightsWidget";
 import FutureYouCard from "./FutureYouCard";
 import EvolutionCard from "./EvolutionCard";
+import { NotificationCenter } from "./NotificationCenter";
 
 
 /* ─── helpers ─────────────────────────────────────────── */
@@ -247,12 +248,7 @@ const UserDashboard = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="relative p-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition">
-                <Bell size={18} className="text-zinc-300" />
-                {pendingTasks > 0 && (
-                  <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-zinc-950 animate-pulse" />
-                )}
-              </button>
+              <NotificationCenter />
               <button
                 onClick={() => navigate("/dashboard/new")}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-semibold text-sm shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] hover:scale-105 transition-all"
@@ -268,7 +264,16 @@ const UserDashboard = () => {
           <StatCard icon={Target}      label="Active Memories"   value={`${activeMemories.length}/3`}   accent="cyan"   sub="Max 3 at once" index={0} />
           <StatCard icon={Flame}       label="Pending Tasks"     value={pendingTasks}                    accent="amber"  sub="Due today"      index={1} />
           <StatCard icon={Activity}    label="Avg Progress"      value={`${avgProgress}%`}               accent="purple" sub="Across goals"    index={2} />
-          <StatCard icon={Trophy}      label="Completed"         value={completedMemories}               accent="green"  sub="Finalized"      index={3} />
+          <div onClick={() => navigate("/dashboard/achievements")} className="cursor-pointer group">
+            <StatCard 
+              icon={Trophy}      
+              label="Completed"         
+              value={completedMemories}               
+              accent="green"  
+              sub="View Legacy Vault →"      
+              index={3} 
+            />
+          </div>
         </div>
 
         {/* ── BENTO GRID ── */}

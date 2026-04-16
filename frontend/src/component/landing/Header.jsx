@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ArrowRight } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 const Header = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -69,18 +71,37 @@ const Header = () => {
 
             {/* Call to Action */}
             <div className="hidden md:flex items-center gap-4">
-              <button 
-                onClick={() => navigate("/login")}
-                className="text-sm font-semibold text-zinc-400 hover:text-white transition-all hover:scale-105 active:scale-95 px-5 py-2.5 border border-white/10 hover:border-cyan-500/50 rounded-full bg-white/5 backdrop-blur-md"
-              >
-                Log in
-              </button>
-              <button 
-                onClick={() => navigate("/signup")}
-                className="group flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black text-sm font-bold hover:bg-zinc-100 transition-all hover:scale-105 active:scale-95 border border-white/20 hover:border-purple-500/50 shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-glow-purple"
-              >
-                Get Started <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </button>
+              {isAuthenticated ? (
+                <>
+                  <button 
+                    onClick={() => navigate("/dashboard")}
+                    className="group flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black text-sm font-bold hover:bg-zinc-100 transition-all hover:scale-105 active:scale-95 border border-white/20 shadow-glow-white"
+                  >
+                    Open Your Vault <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                  <button 
+                    onClick={logout}
+                    className="text-sm font-semibold text-zinc-400 hover:text-white transition-all px-4 py-2 hover:bg-white/5 rounded-full"
+                  >
+                    Log out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => navigate("/login")}
+                    className="text-sm font-semibold text-zinc-400 hover:text-white transition-all hover:scale-105 active:scale-95 px-5 py-2.5 border border-white/10 hover:border-cyan-500/50 rounded-full bg-white/5 backdrop-blur-md"
+                  >
+                    Log in
+                  </button>
+                  <button 
+                    onClick={() => navigate("/signup")}
+                    className="group flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black text-sm font-bold hover:bg-zinc-100 transition-all hover:scale-105 active:scale-95 border border-white/20 hover:border-purple-500/50 shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-glow-purple"
+                  >
+                    Get Started <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Mobile Toggle */}

@@ -1,11 +1,13 @@
-import API from "../../lib/api";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Lock, ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
+import API from "../../lib/api";
+import { useAuth } from "../../context/AuthContext";
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,8 +26,9 @@ const Signup = () => {
     setLoading(true);
     try {
       const res = await API.post("/auth/signup", { email, password });
-      if (res.data.message) {
-        navigate("/login");
+      if (res.data.token) {
+        login(res.data.token, res.data.user);
+        navigate("/dashboard");
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.detail || "Signup failed");

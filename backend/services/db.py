@@ -14,3 +14,5 @@ conversations_collection = db["conversations"]
 thoughts_collection      = db["thoughts"]
 threads_collection       = db["threads"]
 behavior_insights_collection = db["behavior_insights"]
+goals_collection             = db["goals"]
+memory_collection            = db["memories"] # alias for backward compatibility in some routes
