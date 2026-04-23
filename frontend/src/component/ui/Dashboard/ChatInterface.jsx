@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Loader2, Sparkles, User, BrainCircuit, Volume2, Mic, MicOff } from "lucide-react";
 import API from "../../../lib/api";
+import ReactMarkdown from "react-markdown";
 
 export const ChatInterface = ({ initialId = null, onMessageSent }) => {
   const [message, setMessage] = useState("");
@@ -177,14 +178,35 @@ export const ChatInterface = ({ initialId = null, onMessageSent }) => {
                 <div className={`p-2 rounded-full h-8 w-8 flex items-center justify-center shrink-0 ${isUser ? "bg-purple-500 text-white" : "bg-cyan-500/20 text-cyan-400"}`}>
                   {isUser ? <User size={16} /> : <BrainCircuit size={16} />}
                 </div>
-                <div
-                  className={`px-4 py-2.5 rounded-2xl max-w-[75%] text-sm shadow-md leading-relaxed flex flex-col gap-1 ${
+                <div className={`px-4 py-2.5 rounded-2xl max-w-[85%] text-sm shadow-md leading-relaxed flex flex-col gap-1 ${
                     isUser
                       ? "bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-tr-none"
                       : "bg-white/10 text-zinc-200 border border-white/5 rounded-tl-none backdrop-blur-sm"
-                  }`}
-                >
-                  <div style={{ whiteSpace: "pre-wrap" }}>{msg.text}</div>
+                  }`}>
+                    <div className="overflow-x-auto">
+                      <ReactMarkdown
+                        components={{
+                          code({node, inline, className, children, ...props}) {
+                            return !inline ? (
+                              <div className="bg-black/60 text-cyan-300 p-3 rounded-lg overflow-x-auto my-2 border border-white/10 font-mono text-xs shadow-inner">
+                                <code {...props}>
+                                  {children}
+                                </code>
+                              </div>
+                            ) : (
+                              <code className="bg-black/40 text-cyan-200 px-1.5 py-0.5 rounded font-mono text-[11px]" {...props}>
+                                {children}
+                              </code>
+                            )
+                          },
+                          p({children}) {
+                            return <p className="mb-2 last:mb-0" style={{ whiteSpace: "pre-wrap" }}>{children}</p>
+                          }
+                        }}
+                      >
+                        {msg.text}
+                      </ReactMarkdown>
+                    </div>
                   {!isUser && (
                     <div className="flex justify-end border-t border-white/5 pt-1 mt-1">
                       <button 

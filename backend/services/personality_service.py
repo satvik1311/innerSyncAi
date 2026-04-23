@@ -1,12 +1,7 @@
 from services.db import thoughts_collection, users_collection, behavior_insights_collection, memories_collection
-from groq import Groq
-import os
+from services.ai_service import client
 import json
 import datetime
-from dotenv import load_dotenv
-
-load_dotenv()
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 async def update_behavioral_insights(email: str):
     """Generates specific behavioral insights based on thoughts, moods, and goal performance."""
@@ -36,7 +31,7 @@ Analyze the provided user data (thoughts, moods, goal progress) and generate exa
 
 [RULES]
 1. HONESTY: Don't just be positive. If the user is procrastinating or stressed, call it out.
-2. SPECIFICITY: Connect thoughts to goals if possible (e.g., "Mood drops when working on [Goal]").
+2. SPECIFICITY: Connect thoughts to goals if possible (e.g., "Mood dropInnerSyncng on [Goal]").
 3. FORMAT: Return ONLY valid JSON in the following format:
 {
   "insights": [

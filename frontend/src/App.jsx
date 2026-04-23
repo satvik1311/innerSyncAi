@@ -17,6 +17,7 @@ import ThoughtsPage from "./component/ui/Dashboard/ThoughtsPage";
 import RoadmapPage from "./component/ui/Dashboard/RoadmapPage";
 import ResonancePage from "./component/ui/Dashboard/ResonancePage";
 import AchievementsPage from "./component/ui/Dashboard/AchievementsPage";
+import NudgesPage from "./component/ui/Dashboard/NudgesPage";
 
 import PublicProfile from "./component/PublicProfile";
 
@@ -58,6 +59,7 @@ const AppContent = () => {
         <Route path="/dashboard/roadmap" element={<ProtectedRoute><RoadmapPage /></ProtectedRoute>} />
         <Route path="/dashboard/resonance" element={<ProtectedRoute><ResonancePage /></ProtectedRoute>} />
         <Route path="/dashboard/achievements" element={<ProtectedRoute><AchievementsPage /></ProtectedRoute>} />
+        <Route path="/dashboard/nudges" element={<ProtectedRoute><NudgesPage /></ProtectedRoute>} />
       </Routes>
     </div>
   );

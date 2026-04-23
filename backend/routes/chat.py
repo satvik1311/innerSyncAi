@@ -4,6 +4,8 @@ from services.db import memories_collection, conversations_collection, users_col
 from services.auth_service import decode_token
 from services.chat_history_service import get_formatted_history, get_or_create_thread
 from services.personality_service import get_user_profile
+from services.rag_service import vector_search_thoughts, vector_search_goals
+from services.activity_service import log_activity
 import datetime
 
 router = APIRouter()
@@ -52,10 +54,15 @@ async def chat(data: dict, authorization: str = Header(None)):
     thread = await get_or_create_thread(user["email"], id_provided, message)
     conv_id = thread["conversation_id"]
 
-    # 2. Fetch Continuity History
+    # 2. Fetch Continuity History (Short-term context)
     history = await get_formatted_history(user["email"], conv_id)
 
-    # 3. Build Behavioral & Data Context
+    # 3. Pull Long-term Memory (RAG)
+    # Search for thoughts and goals that are conceptually similar to the current message
+    past_thoughts = await vector_search_thoughts(user["email"], message, limit=5)
+    past_goals = await vector_search_goals(user["email"], message, limit=3)
+
+    # 4. Build Behavioral & Data Context
     goals = []
     async for m in memories_collection.find({"user_email": user["email"], "status": "active"}):
         goals.append(m)
@@ -79,13 +86,17 @@ async def chat(data: dict, authorization: str = Header(None)):
     async for t in thoughts_collection.find({"user_email": user["email"]}).sort("created_at", -1).limit(10):
         recent_thoughts.append(t)
 
-    # NEW: Fetch Behavioral Profile
+    # Fetch Behavioral Profile
     profile = await get_user_profile(user["email"])
 
     user_context = {
         "goals": goals,
         "recent_tasks": recent_tasks[:10],
         "recent_thoughts": recent_thoughts,
+        "long_term_memories": {
+            "thoughts": past_thoughts,
+            "goals": past_goals
+        },
         "behavioral_profile": profile,
         "stats": {"completion_rate": completion_rate, "total_done": completed_count},
         "preferences": prefs
@@ -105,10 +116,12 @@ async def chat(data: dict, authorization: str = Header(None)):
         "ai_reply":     reply,
         "timestamp":    datetime.datetime.utcnow().isoformat()
     })
+    # Track activity for nudge system (fire-and-forget)
+    await log_activity(user["email"], "chat_sent")
 
     return {
-        "reply": reply, 
-        "conversation_id": conv_id, 
+        "reply": reply,
+        "conversation_id": conv_id,
         "title": thread.get("title")
     }
 

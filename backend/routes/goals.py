@@ -1,27 +1,33 @@
 from fastapi import APIRouter, Header, HTTPException
+from pydantic import BaseModel, Field
 from services.db import goals_collection, memory_collection
 from services.auth_service import decode_token
 from services.ai_service import generate_goal_roadmap
+from services.embedding_service import embedding_service
 from bson import ObjectId
 import datetime
 import uuid
 
 router = APIRouter()
 
+
+class CreateGoalRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    description: str = Field("", max_length=1000)
+    target: str = Field("", max_length=500)
+    deadline: str = ""
+
 @router.post("/")
-async def create_goal(data: dict, authorization: str = Header(None)):
+async def create_goal(data: CreateGoalRequest, authorization: str = Header(None)):
     if not authorization:
         raise HTTPException(status_code=401, detail="Token missing")
     token = authorization.split(" ")[1]
     user = decode_token(token)
 
-    title = data.get("title")
-    if not title:
-        raise HTTPException(status_code=400, detail="Title required")
-
-    deadline = data.get("deadline", "")
-    target = data.get("target", "")
-    description = data.get("description", "")
+    title       = data.title
+    deadline    = data.deadline
+    target      = data.target
+    description = data.description
 
     # Always generate a roadmap, even if no deadline is strictly given, it's nice to have.
     roadmap = await generate_goal_roadmap(title, target, description, deadline)
@@ -33,6 +39,9 @@ async def create_goal(data: dict, authorization: str = Header(None)):
         if "completed" not in t:
             t["completed"] = False
 
+    # Generate semantic embedding for the goal
+    embedding = await embedding_service.get_embedding(f"{title}: {description}")
+
     goal = {
         "email": user["email"],
         "title": title,
@@ -42,7 +51,8 @@ async def create_goal(data: dict, authorization: str = Header(None)):
         "roadmap": roadmap,
         "progress": 0,
         "status": "in_progress",
-        "created_at": datetime.datetime.utcnow().isoformat()
+        "created_at": datetime.datetime.utcnow().isoformat(),
+        "embedding": embedding
     }
 
     res = await goals_collection.insert_one(goal)
@@ -55,16 +65,22 @@ async def get_goals(authorization: str = Header(None)):
     token = authorization.split(" ")[1]
     user = decode_token(token)
 
+    # Single aggregation query — avoids N+1 count_documents calls
+    pipeline = [
+        {"$match": {"email": user["email"]}},
+        {"$lookup": {
+            "from": "memories",
+            "localField": "_id",
+            "foreignField": "goal_id",
+            "as": "_linked"
+        }},
+        {"$addFields": {"linked_memories_count": {"$size": "$_linked"}}},
+        {"$project": {"_linked": 0, "embedding": 0}}  # drop heavy/internal fields
+    ]
     goals = []
-    async for g in goals_collection.find({"email": user["email"]}):
+    async for g in goals_collection.aggregate(pipeline):
         g["_id"] = str(g["_id"])
-        
-        # Calculate how many memories are linked to this goal
-        mem_count = await memory_collection.count_documents({"goal_id": g["_id"]})
-        g["linked_memories_count"] = mem_count
-        
         goals.append(g)
-
     return goals
 
 @router.put("/{goal_id}")

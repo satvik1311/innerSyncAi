@@ -19,7 +19,7 @@ async def test_email():
     await send_task_reminder_email(
         to_email=target_email,
         goal_title="Neural Sync Test",
-        task_text="Establish connection with InnerSync AI"
+        task_text="Establish connection with InnerSync"
     )
     print("\nTest sequence complete. Check the console output above to see if it was 'MOCKED' or 'DISPATCHED'.")
 

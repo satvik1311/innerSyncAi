@@ -22,7 +22,7 @@ export default function Hero() {
         <div className="mb-8 relative">
           <img
             src={heroImage}
-            alt="InnerSync AI - Synchronize your present, master your future"
+            alt="InnerSync - Synchronize your present, master your future"
             className="w-full max-w-4xl mx-auto rounded-2xl shadow-lg animate-pulse"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-fuchsia-500 opacity-20 rounded-2xl"></div>

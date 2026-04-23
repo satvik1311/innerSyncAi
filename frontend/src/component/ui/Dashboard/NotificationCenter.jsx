@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, X, CheckCircle2, AlertCircle, Info, Sparkles, Trash2 } from "lucide-react";
+import { Bell, X, CheckCircle2, AlertCircle, Info, Sparkles, BrainCircuit } from "lucide-react";
 import API from "../../../lib/api";
 
 export const NotificationCenter = () => {
@@ -70,6 +70,7 @@ export const NotificationCenter = () => {
       case "task_missed": return { icon: AlertCircle, color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20" };
       case "task_created": return { icon: CheckCircle2, color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/20" };
       case "evolution": return { icon: Sparkles, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20" };
+      case "nudge": return { icon: BrainCircuit, color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/30" };
       default: return { icon: Info, color: "text-zinc-400", bg: "bg-zinc-500/10", border: "border-zinc-500/20" };
     }
   };

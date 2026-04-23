@@ -28,20 +28,33 @@ async def get_profile(authorization: str = Header(None)):
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Optimized Stats Aggregation
-    total_goals = await memories_collection.count_documents({"user_email": email})
-    completed_goals = await memories_collection.count_documents({"user_email": email, "status": "completed"})
-    
-    # Calculate total tasks completed across all memories
+    # High-Performance Stats Aggregation (Single scan)
     pipeline = [
         {"$match": {"user_email": email}},
-        {"$unwind": "$tasks"},
-        {"$match": {"tasks.completed": True}},
-        {"$count": "count"}
+        {
+            "$group": {
+                "_id": None,
+                "total_goals": {"$sum": 1},
+                "completed_goals": {
+                    "$sum": {"$cond": [{"$eq": ["$status", "completed"]}, 1, 0]}
+                },
+                "tasks_completed": {
+                    "$sum": {
+                        "$size": {
+                            "$filter": {
+                                "input": {"$ifNull": ["$tasks", []]},
+                                "as": "t",
+                                "cond": {"$eq": ["$$t.completed", True]}
+                            }
+                        }
+                    }
+                }
+            }
+        }
     ]
     cursor = memories_collection.aggregate(pipeline)
     agg_result = await cursor.to_list(length=1)
-    total_tasks_done = agg_result[0]["count"] if agg_result else 0
+    stats = agg_result[0] if agg_result else {"total_goals": 0, "completed_goals": 0, "tasks_completed": 0}
 
     # Sanitize for JSON
     db_user.pop("password", None)
@@ -51,9 +64,9 @@ async def get_profile(authorization: str = Header(None)):
     return {
         **db_user,
         "stats": {
-            "total_goals": total_goals,
-            "completed_goals": completed_goals,
-            "tasks_completed": total_tasks_done,
+            "total_goals": stats.get("total_goals", 0),
+            "completed_goals": stats.get("completed_goals", 0),
+            "tasks_completed": stats.get("tasks_completed", 0),
             "streak_count": db_user.get("streak_count", 0)
         }
     }

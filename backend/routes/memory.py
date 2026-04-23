@@ -89,9 +89,12 @@ async def get_memories(authorization: str = Header(None)):
     data = []
     async for mem in memories_collection.find({"user_email": user["email"]}):
         mem["_id"] = str(mem["_id"])
-        total = len(mem.get("tasks", []))
-        done  = sum(1 for t in mem.get("tasks", []) if t.get("completed", False))
-        mem["progress"] = int((done / total * 100)) if total > 0 else 0
+        # Use DB-stored progress when available (written on task completion).
+        # Fall back to on-the-fly computation for legacy docs without the field.
+        if "progress" not in mem:
+            total = len(mem.get("tasks", []))
+            done  = sum(1 for t in mem.get("tasks", []) if t.get("completed", False))
+            mem["progress"] = int((done / total * 100)) if total > 0 else 0
         data.append(mem)
 
     return data

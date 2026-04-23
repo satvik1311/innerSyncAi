@@ -17,6 +17,7 @@ async def generate_response(history: list, user_context: dict):
         recent_thoughts = user_context.get("recent_thoughts", [])
         profile = user_context.get("behavioral_profile", "None established.")
         prefs = user_context.get("preferences", {"tone": "Balanced", "response_length": "Medium", "focus": "Productivity"})
+        ltm = user_context.get("long_term_memories", {"thoughts": [], "goals": []})
 
         goals_text = "\n".join([f"- {g.get('title')} ({g.get('progress', 0)}%)" for g in goals]) if goals else "None."
         tasks_text = "\n".join([f"- {t.get('text')} [{'DONE' if t.get('completed') else 'PENDING'}]" for t in recent_tasks]) if recent_tasks else "None."
@@ -28,7 +29,17 @@ async def generate_response(history: list, user_context: dict):
                 [f"[{t.get('created_at')[:10]}] Mood: {t.get('mood')} - \"{t.get('content')}\"" for t in recent_thoughts]
             )
 
+        # Build Long-term Memory context
+        ltm_text = ""
+        if ltm["thoughts"] or ltm["goals"]:
+            ltm_text += "\n[LONG-TERM MEMORY (RELEVANT PAST)]\n"
+            for t in ltm["thoughts"]:
+                ltm_text += f"- Past Thought: \"{t.get('content')}\" (Insight: {t.get('ai_insight')})\n"
+            for g in ltm["goals"]:
+                ltm_text += f"- Past Goal: {g.get('title')} ({g.get('status')})\n"
+
         system_prompt = f"""You are the FUTURE VERSION (5 years ahead) of the user. You are wiser, clearer, and deeply invested in their growth.
+{ltm_text if ltm_text else ""}
 
 [IDENTITY & BEHAVIORAL PROFILE]
 {profile}
@@ -43,10 +54,11 @@ Thoughts:
 {thoughts_text if thoughts_text else "No thoughts recorded yet."}
 
 🎯 CORE BEHAVIOR RULES
-1. CONTINUITY: You have access to previous messages in this conversation. Use them to maintain a coherent narrative.
+1. CONTINUITY: You have access to previous messages in this conversation and Long-term Memories (if any). Use them to maintain a coherent narrative.
 2. BEHAVIORAL MIRRORING: Reference the Behavioral Profile above. If the user is repeating a pattern mentioned there, call it out gently but firmly.
 3. EMOTIONAL ACKNOWLEDGMENT: Acknowledge the current mood or tone of their message based on their recent thoughts.
 4. BREVITY: Keep your responses to 2-4 lines of high-impact clarity.
+5. CODE FORMATTING: Whenever you provide coding solutions or snippets, you MUST wrap them in markdown code blocks (using triple backticks).
 
 💬 STYLE
 - Speak as them, but improved.
@@ -177,3 +189,59 @@ Return ONLY valid JSON in this format:
 async def generate_goal_roadmap(title: str, target: str, description: str, deadline: str) -> list:
     """Wrapper for goals.py to generate a roadmap using the same logic as memory tasks."""
     return await generate_memory_tasks(title, f"{target} - {description} (Deadline: {deadline})")
+
+
+async def generate_nudge(pattern: str, context: dict, past_memory: str = None) -> str:
+    """
+    Generates a personalized, emotionally intelligent nudge from the user's Future Self.
+    
+    Patterns:
+        'inactivity_3d'   — user has been absent for 3+ days
+        'negative_streak' — 3+ consecutive negative mood thoughts
+        'goal_avoidance'  — active goals but no task completions in 4+ days
+    """
+    try:
+        memory_hook = ""
+        if past_memory:
+            memory_hook = f"\nFor additional depth, you can reference this thing they once wrote: \"{past_memory[:120]}\""
+
+        PATTERN_PROMPTS = {
+            "inactivity_3d": f"""You are the user's Future Self — the version of them that made it through.
+They haven't opened InnerSync in {context.get('days', 3)} days. You've felt the silence.
+Write them a short, personal message (2-3 sentences). Not a notification. A real message.
+Reference the fact that momentum is fragile and silence is the enemy of growth.
+Sound like a close friend who has seen what happens when people go quiet — not a bot.
+Do NOT use the word "journey". Do NOT start with "Hey there!" or any generic opener.
+{memory_hook}""",
+
+            "negative_streak": f"""You are the user's Future Self.
+You've been watching their thoughts. They've been feeling {', '.join(context.get('moods', ['low']))} — repeatedly, over the last few days.
+Write them a 2-3 sentence message. Acknowledge the weight without dismissing it.
+Then offer ONE powerful reframe — not advice, just perspective from someone who made it through.
+Sound raw and human. Do NOT use the word "journey". Do NOT be generic.
+{memory_hook}""",
+
+            "goal_avoidance": f"""You are the user's Future Self.
+You know they set a goal: "{context.get('goal_title', 'something important')}".
+They haven't touched it in days. You're not angry — you're concerned.
+Write them a 2-3 sentence message. Call out the pattern gently but with weight.
+Remind them why they started — you know, because you've already lived through what happens if they don't.
+Do NOT use the word "journey". Do NOT sound like a motivational poster.
+{memory_hook}"""
+        }
+
+        prompt = PATTERN_PROMPTS.get(
+            pattern,
+            "Send the user a warm, personal 2-sentence check-in from their Future Self. Be human."
+        )
+
+        res = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=140
+        )
+        return res.choices[0].message.content.strip()
+
+    except Exception as e:
+        print(f"[NudgeAI] Generation error: {e}")
+        return "Your Future Self is reaching out — you're closer than you think. Don't go quiet now."

@@ -11,15 +11,17 @@ import {
   Map,
   Network,
   Trash2,
-  XCircle
+  XCircle,
+  BrainCircuit,
+  Trophy
 } from "lucide-react";
 
-export const Sidebar = ({ 
-  threads = [], 
-  onSelectThread, 
-  activeThreadId, 
-  onDeleteThread, 
-  onDeleteAll 
+export const Sidebar = ({
+  threads = [],
+  onSelectThread,
+  activeThreadId,
+  onDeleteThread,
+  onDeleteAll
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,6 +33,8 @@ export const Sidebar = ({
     { label: "Future Self", icon: MessageSquare, path: "/dashboard/chat" },
     { label: "Roadmap", icon: Map, path: "/dashboard/roadmap" },
     { label: "Neural Map", icon: Network, path: "/dashboard/resonance" },
+    { label: "Future Self Signals", icon: BrainCircuit, path: "/dashboard/nudges" },
+    { label: "Achievements", icon: Trophy, path: "/dashboard/achievements" },
     { label: "Identity & Core", icon: User, path: "/dashboard/profile" },
   ];
 
@@ -58,7 +62,7 @@ export const Sidebar = ({
           </div>
           <div>
             <h1 className="font-bold text-lg bg-gradient-to-r from-cyan-400 to-purple-400
-              bg-clip-text text-transparent leading-tight">InnerSync AI</h1>
+              bg-clip-text text-transparent leading-tight">InnerSync</h1>
             <p className="text-[10px] text-zinc-500 tracking-widest uppercase">Cognitive Sync Center</p>
           </div>
         </div>
@@ -105,7 +109,7 @@ export const Sidebar = ({
         <div className="flex items-center justify-between mb-4 px-2">
           <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Recent Intervals</h3>
           {threads.length > 0 && (
-            <button 
+            <button
               onClick={onDeleteAll}
               className="text-zinc-600 hover:text-red-400 transition-colors p-1 rounded-md hover:bg-red-500/10"
               title="Clear All History"
@@ -114,18 +118,17 @@ export const Sidebar = ({
             </button>
           )}
         </div>
-        
+
         <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-1 pb-4">
           {threads.length > 0 ? (
             threads.map((t) => (
               <div key={t.conversation_id} className="group relative flex items-center">
                 <button
                   onClick={() => onSelectThread ? onSelectThread(t.conversation_id) : navigate("/dashboard/chat")}
-                  className={`w-full text-left pl-3 pr-10 py-3 rounded-xl text-sm transition-all truncate border ${
-                    activeThreadId === t.conversation_id
+                  className={`w-full text-left pl-3 pr-10 py-3 rounded-xl text-sm transition-all truncate border ${activeThreadId === t.conversation_id
                       ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.08)] font-medium"
                       : "text-zinc-400 border-transparent hover:text-white hover:bg-white/5"
-                  }`}
+                    }`}
                 >
                   {t.title || "Untitled Session"}
                 </button>

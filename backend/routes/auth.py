@@ -98,29 +98,10 @@ async def login(user: User):
         if not verify_password(user.password, db_user["password"]):
             raise HTTPException(status_code=401, detail="Wrong password")
 
-        # Update streak logic
-        now_date = datetime.datetime.utcnow().date()
-        last_active = db_user.get("last_active_date", "")
-        streak = db_user.get("streak_count", 0)
-        
-        try:
-            last_dt = datetime.datetime.strptime(last_active, "%Y-%m-%d").date()
-            diff = (now_date - last_dt).days
-            if diff == 1:
-                streak += 1
-            elif diff > 1:
-                streak = 1
-            # if diff == 0, streak remains same
-        except:
-            streak = 1
-
-        await users_collection.update_one(
-            {"_id": db_user["_id"]},
-            {"$set": {
-                "last_active_date": now_date.isoformat(),
-                "streak_count": streak
-            }}
-        )
+        # Delegate streak logic to streak_service (single source of truth)
+        # This handles streak increment, longest_streak, activity_log, and avatar refresh
+        from services.streak_service import update_streak
+        await update_streak(email)
 
         # Refresh Avatar State
         await refresh_avatar_state(email)

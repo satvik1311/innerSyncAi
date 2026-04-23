@@ -65,7 +65,7 @@ const PublicProfile = () => {
           <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
             <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
           </div>
-          <span className="font-bold text-white tracking-widest uppercase text-xs">InnerSync AI</span>
+          <span className="font-bold text-white tracking-widest uppercase text-xs">InnerSync</span>
         </Link>
         <Link to="/login" className="px-4 py-1.5 text-xs font-semibold text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors">
           Build Your Own
@@ -74,7 +74,7 @@ const PublicProfile = () => {
 
       {/* Profile Card */}
       <main className="flex-1 w-full max-w-3xl px-6 py-10 z-10 flex flex-col items-center text-center">
-        
+
         {/* Avatar */}
         <div className="w-28 h-28 rounded-full border-4 border-black shadow-[0_0_40px_rgba(168,85,247,0.3)] bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center text-4xl font-bold text-white overflow-hidden mb-6">
           {data.avatar_url ? (
@@ -87,7 +87,7 @@ const PublicProfile = () => {
         {/* Identity */}
         <h1 className="text-4xl font-bold text-white mb-2">{data.name}</h1>
         <p className="text-purple-400 font-medium tracking-wide mb-4">@{data.username}</p>
-        
+
         {data.bio && (
           <p className="max-w-xl text-zinc-400 leading-relaxed mb-8">"{data.bio}"</p>
         )}
@@ -115,7 +115,7 @@ const PublicProfile = () => {
 
         {/* Join Date footer */}
         <div className="mt-16 flex items-center gap-2 text-sm text-zinc-600">
-           <Calendar size={14} /> Vault Member since {data.join_date}
+          <Calendar size={14} /> Vault Member since {data.join_date}
         </div>
 
       </main>

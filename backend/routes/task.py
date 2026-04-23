@@ -5,6 +5,7 @@ from services.auth_service import decode_token
 from services.streak_service import update_streak
 from bson import ObjectId
 from services.avatar_service import refresh_avatar_state
+from services.activity_service import log_activity
 import datetime
 import copy
 
@@ -98,14 +99,19 @@ async def complete_task(req: CompleteTaskRequest, background_tasks: BackgroundTa
 
     done       = sum(1 for t in tasks if t.get("completed", False))
     new_status = "completed" if done == len(tasks) else "active"
+    new_progress = int(done / len(tasks) * 100) if tasks else 0
 
     await memories_collection.update_one(
         {"_id": ObjectId(req.memory_id)},
-        {"$set": {"tasks": tasks, "status": new_status}}
+        {"$set": {"tasks": tasks, "status": new_status, "progress": new_progress}}
     )
 
     # Refresh Avatar State
     await refresh_avatar_state(user["email"])
     background_tasks.add_task(update_streak, user["email"])
+    # Track activity for nudge system
+    background_tasks.add_task(log_activity, user["email"], "task_completed", {
+        "goal_title": mem.get("title", "")
+    })
 
     return {"message": "Task completed", "memory_status": new_status}

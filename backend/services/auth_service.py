@@ -27,6 +27,5 @@ def verify_password(password: str, hashed: str):
 # CREATE TOKEN
 def create_token(data: dict):
     to_encode = data.copy()
-    # Updated to 2 hours for professional session standards
-    to_encode.update({"exp": datetime.utcnow() + timedelta(hours=2)})
+    to_encode.update({"exp": datetime.utcnow() + timedelta(days=30)})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)

@@ -22,7 +22,7 @@ const Footer = () => {
           <h2 className="text-4xl md:text-6xl font-black mb-10 tracking-tight text-white">
             Start syncing with your future today.
           </h2>
-          <button 
+          <button
             onClick={() => navigate("/signup")}
             className="group relative inline-flex items-center gap-2 px-10 py-5 rounded-2xl bg-white text-black font-extrabold text-xl hover:bg-zinc-200 transition-all shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:shadow-[0_0_60px_rgba(255,255,255,0.4)] hover:scale-105 active:scale-95"
           >
@@ -32,10 +32,10 @@ const Footer = () => {
 
         <div className="flex flex-col md:flex-row items-center justify-between pt-12 border-t border-white/5 gap-10">
           <div className="flex items-center gap-3">
-             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center">
-                <img src="/logo.png" alt="Logo" className="w-5 h-5 object-contain" />
-             </div>
-             <span className="text-lg font-bold text-white tracking-tight">InnerSync</span>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center">
+              <img src="/logo.png" alt="Logo" className="w-5 h-5 object-contain" />
+            </div>
+            <span className="text-lg font-bold text-white tracking-tight">InnerSync</span>
           </div>
 
           <div className="flex items-center gap-10 text-sm font-medium text-zinc-500">
@@ -52,7 +52,7 @@ const Footer = () => {
         </div>
 
         <p className="mt-16 text-center text-zinc-600 text-xs font-medium uppercase tracking-[0.2em]">
-          © 2026 InnerSync AI (v1.0.4) — All rights reserved. Built for the future version of you.
+          © 2026 InnerSync (v1.0.4) — All rights reserved. Built for the future version of you.
         </p>
       </div>
     </footer>
